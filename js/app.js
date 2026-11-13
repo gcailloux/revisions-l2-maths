@@ -477,25 +477,29 @@
   }
 
   /* ----------------------- Fiche ----------------------- */
-  const FICHE_LABELS = { def: 'Définition', thm: 'Théorème', prop: 'Propriété', form: 'Formule', meth: 'Méthode', warn: 'Attention', cor: 'Corollaire' };
-  /* Item de fiche : { k, t, key (l'essentiel, affiché en grand), b (complément), prio (à savoir par cœur) } */
+  /* Fiche de cours au format « cahier » (modèle fourni) : titres rouges soulignés, texte bleu,
+     hypothèses puis conclusions à puces rouges. Item : { k, t, hyp, concl: [..], b, prio }.
+     Dans le contenu : <u> = souligné rouge (condition ou résultat clé), <mark> = surligné. */
+  const FICHE_LABELS = { def: 'Définition', thm: 'Théorème', prop: 'Propriété', lemme: 'Lemme', form: 'Formule', meth: 'Méthode', warn: 'Attention', cor: 'Corollaire' };
   function ficheItem(it) {
-    const key = it.key || it.b;
-    const more = it.key ? it.b : null;
-    return '<div class="fiche-item k-' + it.k + (it.prio ? ' prio' : '') + '">' +
-      '<div class="fi-head"><span class="fi-label">' + (FICHE_LABELS[it.k] || it.k) + '</span><span class="fi-title">' + it.t + '</span></div>' +
-      '<div class="fi-key">' + key + '</div>' +
-      (more ? '<div class="fi-more">' + more + '</div>' : '') + '</div>';
+    const concl = it.concl || (it.key ? [it.key] : []);
+    return '<section class="fc fk-' + it.k + (it.prio ? ' prio' : '') + '">' +
+      '<h3 class="fc-t">' + (it.prio ? '<span class="fc-star" title="À savoir par cœur">★</span>' : '') +
+        '<span class="fc-title">' + it.t + '</span><span class="fc-k">' + (FICHE_LABELS[it.k] || '') + '</span></h3>' +
+      (it.hyp ? '<div class="fc-hyp">' + it.hyp + '</div>' : '') +
+      (concl.length ? '<ul class="fc-concl">' + concl.map(c => '<li>' + c + '</li>').join('') + '</ul>' : '') +
+      (it.b ? '<div class="fc-note">' + it.b + '</div>' : '') +
+      '</section>';
   }
   function renderFiche(view, s, ch, C) {
-    const prio = C.fiche.filter(i => i.prio), rest = C.fiche.filter(i => !i.prio);
     view.innerHTML =
-      '<div class="fiche-tools"><span class="lead">L\'essentiel du chapitre. <mark>Surligné</mark> = le point clé, <b>gras</b> = mot à retenir.</span>' +
+      '<div class="fiche-tools"><span class="lead"><u>Souligné rouge</u> = condition ou résultat clé · <span class="fc-star">★</span> = à savoir par cœur</span>' +
       '<button class="btn ghost" id="print">Imprimer</button></div>' +
-      (prio.length ? '<section class="fiche-sec"><h2 class="fiche-h"><span class="star">★</span>À savoir par cœur</h2>' +
-        '<div class="fiche-prio">' + prio.map(ficheItem).join('') + '</div></section>' : '') +
-      (rest.length ? '<section class="fiche-sec"><h2 class="fiche-h">Le reste du chapitre</h2>' +
-        '<div class="fiche">' + rest.map(ficheItem).join('') + '</div></section>' : '');
+      '<article class="fiche-page">' +
+        '<header class="fc-head"><span class="fc-chap">Chap ' + ch.num + '</span>' +
+        '<h2>' + esc(ch.title) + '</h2><span class="fc-mat">' + esc(s.name) + '</span></header>' +
+        C.fiche.map(ficheItem).join('') +
+      '</article>';
     typeset(view);
     $('#print', view).addEventListener('click', () => window.print());
   }
