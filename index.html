@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1b1f27">
+<meta name="apple-mobile-web-app-title" content="Révisions L2">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Révisions L2 Maths</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<!-- KaTeX embarqué localement : aucune connexion internet nécessaire -->
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script src="vendor/katex/katex.min.js"></script>
+<script src="vendor/katex/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <button id="menu-toggle" class="icon-btn" aria-label="Menu">
+    <svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+  </button>
+  <a class="brand" href="#/"><span class="brand-mark">∑</span> Révisions L2 Maths</a>
+  <span class="spacer"></span>
+  <button id="theme-toggle" class="icon-btn" aria-label="Changer de thème" title="Thème clair / sombre">
+    <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg>
+  </button>
+</header>
+<div class="layout">
+  <nav id="sidebar"></nav>
+  <main id="main"></main>
+</div>
+
+<!-- Moteur -->
+<script src="js/core/registry.js"></script>
+<script src="js/core/mathlib.js"></script>
+<script src="js/content/subjects.js"></script>
+
+<!-- Contenus (un fichier par chapitre rédigé) -->
+<script src="js/content/algebre3/vp.js"></script>
+<script src="js/content/analyse3/series.js"></script>
+<script src="js/content/probas/denombrement.js"></script>
+<script src="js/content/algo/complexite.js"></script>
+<script src="js/content/aai/suites-fonctions.js"></script>
+
+<script src="js/app.js"></script>
+</body>
+</html>
