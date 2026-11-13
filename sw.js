@@ -2,7 +2,7 @@
    La liste PRECACHE et la VERSION sont régénérées par tools/maj-hors-ligne.ps1
    (à relancer après chaque ajout ou modification de fichier). */
 // <auto>
-const VERSION = '20261113-224421';
+const VERSION = '20261113-224556';
 const PRECACHE = [
   './',
   './index.html',
@@ -50,7 +50,12 @@ const PRECACHE = [
 const CACHE = 'revisions-l2-' + VERSION;
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  // cache: 'reload' contourne le cache HTTP du navigateur : on récupère toujours la version publiée.
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(c => c.addAll(PRECACHE.map(u => new Request(u, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', event => {
