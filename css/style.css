@@ -204,6 +204,17 @@ table.t th { background: var(--panel-2); }
 pre.code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 14px; line-height: 1.5; -webkit-overflow-scrolling: touch; }
 code { font-family: var(--font-mono); font-size: .9em; }
 pre.pseudo { border-left: 4px solid var(--sc); line-height: 1.6; }
+/* Dessins d'arbres (SVG généré) */
+.tree-fig { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; margin: 10px 0; overflow-x: auto; }
+.tree-fig figure { margin: 0; text-align: center; }
+.tree-fig figcaption { font-family: var(--font-ui); font-size: 13px; color: var(--muted); margin-top: 2px; }
+svg.tree { max-width: 100%; height: auto; color: var(--text); }
+svg.tree line { stroke: currentColor; stroke-width: 2; opacity: .7; }
+svg.tree circle { fill: var(--panel); stroke: var(--sc); stroke-width: 2.5; }
+svg.tree text { font-family: var(--font-ui); font-size: 15px; font-weight: 600; fill: currentColor; text-anchor: middle; dominant-baseline: central; }
+svg.tree .hl circle { fill: color-mix(in srgb, var(--sc) 30%, var(--panel)); stroke-width: 3.5; }
+svg.tree .del circle { stroke: var(--warn); stroke-dasharray: 4 3; }
+svg.tree text.idx { font-size: 11px; font-weight: 400; fill: var(--muted); }
 pre.pseudo .tk-kw { font-weight: 700; }
 :not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
 .tk-kw { color: #a626a4; font-weight: 600; } .tk-str { color: #50a14f; } .tk-num { color: #986801; }

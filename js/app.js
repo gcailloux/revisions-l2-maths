@@ -72,7 +72,7 @@
   const PSEUDO_KW = new Set(('fonction procédure fin pour de à faire par pas si alors sinon tant que ' +
     'retourner et ou non vrai faux NUL répéter jusqu').split(' '));
   function highlightPseudo(src) {
-    const re = /(\/\/[^\n]*)|([A-Za-zÀ-ÖØ-öø-ÿ_][A-Za-zÀ-ÖØ-öø-ÿ0-9_]*)|(\d+)/g;
+    const re = /(\/\/[^\n]*)|([A-Za-zÀ-ÖØ-öø-ÿŒœ_][A-Za-zÀ-ÖØ-öø-ÿŒœ0-9_]*)|(\d+)/g;
     let out = '', last = 0, m;
     while ((m = re.exec(src))) {
       out += esc(src.slice(last, m.index));
