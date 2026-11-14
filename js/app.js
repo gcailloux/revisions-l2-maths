@@ -43,7 +43,7 @@
     '\\Z': '\\mathbb{Z}', '\\Q': '\\mathbb{Q}', '\\Id': '\\mathrm{Id}', '\\Sp': '\\operatorname{Sp}',
     '\\tr': '\\operatorname{tr}', '\\rg': '\\operatorname{rg}', '\\Vect': '\\operatorname{Vect}',
     '\\Card': '\\operatorname{Card}', '\\Ker': '\\operatorname{Ker}', '\\Imm': '\\operatorname{Im}',
-    '\\Proba': '\\mathbb{P}', '\\Esp': '\\mathbb{E}', '\\Var': '\\operatorname{Var}',
+    '\\Proba': '\\mathbb{P}', '\\Esp': '\\mathbb{E}', '\\Var': '\\operatorname{Var}', '\\Cov': '\\operatorname{Cov}',
     '\\M': '\\mathcal{M}', '\\Lin': '\\mathcal{L}', '\\eps': '\\varepsilon', '\\dd': '\\,\\mathrm{d}'
   };
   const PY_KW = new Set(('def return if elif else while for in and or not None True False import from as pass ' +

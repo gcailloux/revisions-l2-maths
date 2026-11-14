@@ -201,7 +201,7 @@ details.proof summary:hover { color: var(--text); }
 /* Listes, tableaux et code (partagés) */
 .cours ul, .cours ol, .exo ul, .exo ol, .methode ul, .methode ol { padding-left: 1.4em; }
 .table-wrap, table.t { max-width: 100%; }
-table.t { border-collapse: collapse; margin: 10px 0; font-size: .95em; display: block; overflow-x: auto; }
+table.t { border-collapse: collapse; margin: 10px 0; font-size: .95em; display: block; overflow-x: auto; position: relative; }
 table.t th, table.t td { border: 1px solid var(--border-strong); padding: 6px 10px; text-align: center; }
 table.t th { background: var(--panel-2); }
 pre.code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 14px; line-height: 1.5; -webkit-overflow-scrolling: touch; }
@@ -228,7 +228,7 @@ pre.pseudo .tk-kw { font-weight: 700; }
   :root:not([data-theme="light"]) .tk-kw { color: #d39bf0; } :root:not([data-theme="light"]) .tk-str { color: #98c379; }
   :root:not([data-theme="light"]) .tk-num { color: #e5c07b; } :root:not([data-theme="light"]) .tk-fn { color: #61afef; } :root:not([data-theme="light"]) .tk-bi { color: #56b6c2; }
 }
-.katex-display { overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: 2px 0; position: relative; }
 .katex { font-size: 1.08em; }
 
 /* ===================== Fiche (format cahier) ===================== */
