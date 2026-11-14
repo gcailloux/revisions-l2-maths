@@ -28,15 +28,21 @@ L2.subject({
 
 L2.subject({
   id: 'probas', name: 'Probabilités et statistiques 1', color: '#2b8a3e', ink: '#237032', on: '#ffffff',
-  desc: 'Dénombrement, espaces probabilisés, variables aléatoires discrètes, statistique descriptive.',
+  desc: 'Dénombrement et probabilités sur un univers fini, variables aléatoires discrètes, variables aléatoires à densité.',
   chapters: [
-    { id: 'denombrement', title: 'Dénombrement' },
-    { id: 'espaces-proba', title: 'Espaces probabilisés' },
-    { id: 'conditionnement', title: 'Conditionnement et indépendance' },
-    { id: 'va-discretes', title: 'Variables aléatoires discrètes, lois usuelles' },
-    { id: 'esperance', title: 'Espérance, variance, couples' },
-    { id: 'lgn', title: 'Inégalités et loi faible des grands nombres' },
-    { id: 'stat-desc', title: 'Statistique descriptive' }
+    { id: 'denombrement', title: 'Dénombrement et probabilités sur un univers fini', sections: [
+      'Dénombrements',
+      'Espaces probabilisés et probabilités',
+      'Probabilités conditionnelles et indépendance'] },
+    { id: 'va-discretes', title: 'Variables aléatoires discrètes', sections: [
+      'Généralités : loi d’une variable aléatoire, loi d’une VA discrète, espérance, variance',
+      'Lois usuelles discrètes : uniforme, Bernoulli, binomiale, géométrique, Pascal, hypergéométrique, Poisson',
+      'Couples de variables aléatoires discrètes : loi jointe, lois marginales',
+      'Lois conditionnelles : théorème de Bayes, indépendance'] },
+    { id: 'va-densite', title: 'Variables aléatoires réelles à densité', sections: [
+      'Généralités : définitions',
+      'Lois usuelles : uniforme, exponentielle, normale centrée réduite, normale',
+      'Suite du chapitre à venir'] }
   ]
 });
 

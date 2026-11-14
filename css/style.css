@@ -168,6 +168,7 @@ main { padding: 28px 32px 80px; max-width: 1240px; width: 100%; padding-bottom: 
 .cours-tools { display: flex; justify-content: flex-end; font-family: var(--font-ui); }
 .intro { background: var(--panel); border: 1px solid var(--border); border-left: 5px solid var(--sc); border-radius: 8px; padding: 14px 18px; margin: 12px 0; }
 .cours-h { font-family: var(--font-ui); font-size: 21px; margin: 34px 0 12px; padding-bottom: 6px; border-bottom: 2px solid color-mix(in srgb, var(--sc) 45%, transparent); }
+.cours-h2 { font-family: var(--font-ui); font-size: 17.5px; margin: 26px 0 10px; color: var(--sc-ink); }
 .para { margin: 10px 0; }
 .blk { margin: 14px 0; border-radius: 8px; padding: 12px 16px; background: var(--panel); border: 1px solid var(--border); border-left-width: 4px; }
 .blk-head { font-family: var(--font-ui); font-size: 14.5px; margin-bottom: 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
@@ -192,6 +193,8 @@ details.proof summary:hover { color: var(--text); }
 .toc-title { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
 .toc button, .toc-mobile button { display: block; width: 100%; text-align: left; background: none; border: none; padding: 6px 4px; color: var(--muted); cursor: pointer; font: inherit; border-radius: 6px; }
 .toc button:hover, .toc-mobile button:hover { color: var(--text); background: var(--panel-2); }
+.toc button.lvl1, .toc-mobile button.lvl1 { font-weight: 600; color: var(--text); }
+.toc button.lvl2, .toc-mobile button.lvl2 { padding-left: 16px; padding-top: 3px; padding-bottom: 3px; }
 .toc-mobile { display: none; font-family: var(--font-ui); font-size: 15px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 4px 12px; margin: 12px 0; }
 .toc-mobile summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
 
@@ -255,6 +258,8 @@ pre.pseudo .tk-kw { font-weight: 700; }
 .fc-head h2, .fc-chap { text-decoration: underline; text-decoration-thickness: 2.5px; text-underline-offset: 6px; }
 .fc-chap, .fc-mat { font-family: var(--font-ui); font-size: 19px; }
 .fc { margin: 0 0 22px; position: relative; break-inside: avoid; }
+.fc-part { margin: 30px 0 16px; color: var(--ink-red); font-family: var(--font-ui); font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; border-bottom: 3px double var(--ink-red); padding-bottom: 4px; break-after: avoid; }
+.fc-head + .fc-part { margin-top: 6px; }
 .fc-t { margin: 0 0 6px; color: var(--ink-red); font-family: var(--font-ui); font-size: 21px; font-weight: 600; line-height: 1.35; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .fc-title { border-bottom: 2.5px solid var(--ink-red); padding-bottom: 1px; }
 .fc-k { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .65; }

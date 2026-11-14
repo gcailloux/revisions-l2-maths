@@ -58,10 +58,12 @@ js/app.js                  routage et rendu
    L'identifiant doit correspondre à celui déclaré dans `subjects.js`.
 2. Ajouter la balise `<script>` correspondante dans `index.html`.
 
-- **Cours** : blocs `{ t, title, body, proof }` avec `t` parmi `h` (section), `p`, `def`, `thm`, `prop`,
-  `lem`, `cor`, `rem`, `ex`, `nota`, `meth`, `warn`, `algo`.
-- **Fiche** : items `{ k, t, key, b, prio }` : `key` = l'essentiel (affiché en grand), `b` = complément,
-  `prio: true` = rangé dans « À savoir par cœur ». `<mark>` surligne, `<b>` met en gras.
+- **Cours** : blocs `{ t, title, body, proof }` avec `t` parmi `h` (partie numérotée 1, 2…), `h2`
+  (sous-partie numérotée 1.1, 1.2…), `p`, `def`, `thm`, `prop`, `lem`, `cor`, `rem`, `ex`, `nota`, `meth`,
+  `warn`, `algo`.
+- **Fiche** (format cahier) : items `{ k, t, hyp, concl: [...], b, prio }` (hypothèses, conclusions à puces,
+  complément ; `prio: true` = à savoir par cœur), ou `{ part: 'titre' }` pour un intertitre de partie.
+  `<u>` souligne en rouge, `<mark>` surligne.
 - **Fiches méthodes**, en deux parties :
   1. `plan = { etapes: [{ titre, faire, questions }] }` : plan de travail général du chapitre, suivi des
      méthodes par type d'exercice `{ title, cas, debut, etapes, exemple, pieges, gen }` (`cas` → `debut`) ;

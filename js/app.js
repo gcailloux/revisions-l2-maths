@@ -592,15 +592,22 @@
   const NUMBERED = new Set(['def', 'thm', 'prop', 'lem', 'cor', 'algo']);
 
   function renderCours(view, s, ch, C) {
-    let n = 0, nex = 0, sec = 0;
+    let n = 0, nex = 0, sec = 0, sub = 0;
     const toc = [];
     let html = C.intro ? '<div class="intro">' + C.intro + '</div>' : '';
     C.cours.forEach((b, i) => {
       if (b.t === 'h') {
-        sec++;
+        sec++; sub = 0;
         const id = 'sec-' + i;
-        toc.push({ id, title: sec + '. ' + b.title });
+        toc.push({ id, title: sec + '. ' + b.title, lvl: 1 });
         html += '<h2 class="cours-h" id="' + id + '">' + sec + '. ' + b.title + '</h2>';
+        return;
+      }
+      if (b.t === 'h2') {   // sous-partie numérotée 1.1, 1.2…
+        sub++;
+        const id = 'sec-' + i, num = sec + '.' + sub;
+        toc.push({ id, title: num + ' ' + b.title, lvl: 2 });
+        html += '<h3 class="cours-h2" id="' + id + '">' + num + ' ' + b.title + '</h3>';
         return;
       }
       if (b.t === 'p') { html += '<div class="para">' + b.body + '</div>'; return; }
@@ -619,14 +626,14 @@
       '<div class="cours-layout"><article class="cours">' +
         '<div class="cours-tools"><button class="btn ghost" id="open-proofs">Déplier toutes les démonstrations</button></div>' +
         '<details class="toc-mobile"><summary>Plan du chapitre</summary>' +
-          toc.map(t => '<button data-target="' + t.id + '">' + t.title + '</button>').join('') + '</details>' +
+          toc.map(t => '<button class="lvl' + t.lvl + '" data-target="' + t.id + '">' + t.title + '</button>').join('') + '</details>' +
         html +
         '<div class="cours-end"><button class="btn ' + (state.read[key] ? 'on' : '') + '" id="mark-read">' + (state.read[key] ? '✓ Chapitre lu' : 'Marquer le chapitre comme lu') + '</button>' +
         '<a class="btn ghost" href="' + chapterLink(s.id, 'fiches', ch.id) + '">Voir la fiche</a>' +
         '<a class="btn ghost" href="' + chapterLink(s.id, 'exercices', ch.id) + '">Faire les exercices</a></div>' +
       '</article>' +
       '<aside class="toc"><div class="toc-title">Plan du chapitre</div>' +
-        toc.map(t => '<button data-target="' + t.id + '">' + t.title + '</button>').join('') +
+        toc.map(t => '<button class="lvl' + t.lvl + '" data-target="' + t.id + '">' + t.title + '</button>').join('') +
       '</aside></div>';
     typeset(view);
     $$('.toc button, .toc-mobile button', view).forEach(b => b.addEventListener('click', () => {
@@ -653,6 +660,7 @@
      Dans le contenu : <u> = souligné rouge (condition ou résultat clé), <mark> = surligné. */
   const FICHE_LABELS = { def: 'Définition', thm: 'Théorème', prop: 'Propriété', lemme: 'Lemme', form: 'Formule', meth: 'Méthode', warn: 'Attention', cor: 'Corollaire' };
   function ficheItem(it) {
+    if (it.part) return '<h3 class="fc-part">' + it.part + '</h3>';   // intertitre de partie
     const concl = it.concl || (it.key ? [it.key] : []);
     return '<section class="fc fk-' + it.k + (it.prio ? ' prio' : '') + '">' +
       '<h3 class="fc-t">' + (it.prio ? '<span class="fc-star" title="À savoir par cœur">★</span>' : '') +
