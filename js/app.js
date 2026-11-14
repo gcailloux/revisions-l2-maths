@@ -187,6 +187,8 @@
       '<div class="exo-actions">' +
         (ex.indication ? '<button class="btn ghost" data-a="ind">Indication</button>' : '') +
         '<button class="btn" data-a="cor">Voir la correction</button>' +
+        '<button class="btn ghost" data-a="copy" title="Copier l\'énoncé (et la correction si elle est affichée) pour le coller dans une autre appli">' +
+          '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></svg>Copier</button>' +
         '<span class="grow"></span>' +
         '<button class="btn st st-review" data-a="review" title="Je dois retravailler cet exercice">À retravailler</button>' +
         '<button class="btn st st-ok" data-a="ok" title="Je maîtrise">Maîtrisé</button>' +
@@ -224,6 +226,8 @@
         const box = $('.exo-cor', el); box.hidden = !box.hidden;
         btn.textContent = box.hidden ? 'Voir la correction' : 'Masquer la correction';
         el.classList.toggle('cor-open', !box.hidden);
+      } else if (a === 'copy') {
+        copyExercise(el, ex, btn);
       } else if (a === 'review' || a === 'ok') {
         if (getStatus(ex.key) === a) delete state.status[ex.key];
         else state.status[ex.key] = { v: a, sid: ex.sid, cid: ex.cid, lk: ex.listKey, item: ex.item || null, exid: ex.exid || null, t: stripTags(ex.title) };
@@ -263,6 +267,145 @@
   }
   let statusHook = null; // rappel de la page courante quand un statut change
   function stripTags(s) { const d = document.createElement('div'); d.innerHTML = s; return d.textContent; }
+
+  /* ======================= Copier un exercice ======================= */
+  /* Met dans le presse-papiers une IMAGE de l'exercice (pour les applis de prise de notes
+     manuscrites : GoodNotes, Notability, Freeform, Notes…) et sa version TEXTE (formules en LaTeX).
+     Si l'image ne peut pas être copiée, propose de la partager ou de l'enregistrer. */
+  const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  let fontCssCache = null;
+
+  function showToast(msg, html) {
+    let t = document.getElementById('toast');
+    if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+    if (html) t.innerHTML = msg; else t.textContent = msg;
+    t.className = 'show';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.className = ''; }, html ? 12000 : 3200);
+    return t;
+  }
+
+  function exportParts(el, ex) {
+    const s = L2.byId[ex.sid];
+    const ch = s.chapters.find(c => c.id === ex.cid);
+    const body = $(':scope > .exo-body', el);
+    const corBox = $(':scope > .exo-cor', el);
+    const withCor = corBox && !corBox.hidden;
+    return { s, ch, body, cor: withCor ? corBox : null };
+  }
+
+  // Carte claire, hors écran, servant à fabriquer l'image
+  function buildExportCard(el, ex) {
+    const p = exportParts(el, ex);
+    const card = document.createElement('div');
+    card.className = 'export-card';
+    card.setAttribute('style', scStyle(p.s));
+    card.innerHTML = '<div class="xc-head"><span>' + esc(p.s.name) + ' · Ch. ' + p.ch.num + ' : ' + esc(p.ch.title) + '</span></div>' +
+      '<h3 class="xc-title">' + esc(ex.label) + ' — ' + ex.title + '</h3>';
+    const b = p.body.cloneNode(true); b.className = 'xc-body'; card.appendChild(b);
+    if (p.cor) { const c = p.cor.cloneNode(true); c.hidden = false; c.className = 'xc-cor'; card.appendChild(c); }
+    const wrap = document.createElement('div');
+    wrap.className = 'export-wrap';
+    wrap.appendChild(card);
+    document.body.appendChild(wrap);
+    typeset(card); // titres qui contiennent des formules
+    return { wrap, card, parts: p };
+  }
+
+  // Texte brut : formules remplacées par leur source LaTeX
+  function exportText(card) {
+    const c = card.cloneNode(true);
+    $$('.katex-display', c).forEach(k => {
+      const tex = k.querySelector('annotation[encoding="application/x-tex"]');
+      k.replaceWith(document.createTextNode('\n$$' + (tex ? tex.textContent.trim() : '') + '$$\n'));
+    });
+    $$('.katex', c).forEach(k => {
+      const tex = k.querySelector('annotation[encoding="application/x-tex"]');
+      k.replaceWith(document.createTextNode('$' + (tex ? tex.textContent.trim() : k.textContent) + '$'));
+    });
+    const holder = document.createElement('div');
+    holder.className = 'export-wrap';
+    holder.appendChild(c);
+    document.body.appendChild(holder);
+    let txt = c.innerText.replace(/\n{3,}/g, '\n\n').trim();
+    holder.remove();
+    // Remplacer les macros propres au site (\tr, \Sp, \Vect…) par du LaTeX standard
+    Object.entries(MACROS).forEach(([k, v]) => {
+      txt = txt.replace(new RegExp(k.replace(/\\/g, '\\\\') + '(?![A-Za-z])', 'g'), () => v);
+    });
+    return txt;
+  }
+
+  async function renderPng(card) {
+    const H = window.htmlToImage;
+    if (!H) throw new Error('capture indisponible');
+    if (fontCssCache === null) {
+      // seules les polices woff2 sont embarquées dans vendor/katex/fonts
+      try { fontCssCache = await H.getFontEmbedCSS(card, { preferredFontFormat: 'woff2' }); } catch (e) { fontCssCache = ''; }
+    }
+    const opts = { pixelRatio: 2, backgroundColor: '#ffffff', cacheBust: false, preferredFontFormat: 'woff2', fontEmbedCSS: fontCssCache || undefined };
+    if (isSafari) await H.toBlob(card, opts); // Safari : le premier rendu oublie parfois les polices
+    const blob = await H.toBlob(card, opts);
+    if (!blob) throw new Error('image vide');
+    return blob;
+  }
+
+  async function copyExercise(el, ex, btn) {
+    btn.disabled = true;
+    const label = btn.lastChild;
+    const old = label.textContent;
+    label.textContent = 'Copie…';
+    const { wrap, card, parts } = buildExportCard(el, ex);
+    const text = exportText(card);
+    const what = parts.cor ? 'Énoncé et correction copiés' : 'Énoncé copié';
+    const pngPromise = renderPng(card);
+    let ok = false;
+    try {
+      if (!navigator.clipboard || !window.ClipboardItem) throw new Error('presse-papiers indisponible');
+      const textBlob = new Blob([text], { type: 'text/plain' });
+      try {
+        // Safari exige que l'écriture démarre pendant le clic : on passe la promesse de l'image.
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngPromise, 'text/plain': textBlob })]);
+      } catch (e1) {
+        // Navigateurs qui n'acceptent pas les promesses : on attend l'image puis on écrit.
+        const png = await pngPromise;
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': png, 'text/plain': textBlob })]);
+      }
+      ok = true;
+      showToast(what + ' (image + texte) : colle-le dans ton appli de brouillon.');
+    } catch (err) {
+      console.warn('Copie image impossible :', err);
+      // Repli : au moins le texte, puis proposer de partager / enregistrer l'image
+      let textOk = false;
+      try { await navigator.clipboard.writeText(text); textOk = true; } catch (e) { /* ignoré */ }
+      let png = null;
+      try { png = await pngPromise; } catch (e) { /* ignoré */ }
+      if (png) {
+        const file = new File([png], 'exercice.png', { type: 'image/png' });
+        const canShare = navigator.canShare && navigator.canShare({ files: [file] });
+        const t = showToast((textOk ? 'Texte copié. ' : '') + 'Image de l\'exercice : ' +
+          (canShare ? '<button class="btn" id="toast-share">Partager l\'image</button>' : '') +
+          '<button class="btn ghost" id="toast-save">Enregistrer l\'image</button>', true);
+        const sh = $('#toast-share', t);
+        if (sh) sh.addEventListener('click', () => navigator.share({ files: [file], title: stripTags(ex.title) }).catch(() => {}));
+        $('#toast-save', t).addEventListener('click', () => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(png); a.download = 'exercice.png';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+        });
+      } else {
+        showToast(textOk ? what + ' (texte seulement).' : 'Copie impossible dans ce navigateur.');
+      }
+    } finally {
+      // on attend la fin du rendu avant de retirer la carte hors écran
+      try { await pngPromise; } catch (e) { /* ignoré */ }
+      wrap.remove();
+      btn.disabled = false;
+      label.textContent = ok ? 'Copié ✓' : old;
+      if (ok) setTimeout(() => { label.textContent = old; }, 2500);
+    }
+  }
 
   /* ======================= Barre latérale ======================= */
   let current = [];
@@ -718,8 +861,12 @@
 
   /* ======================= Hors ligne ======================= */
   // Service worker : met tout le site en cache (nécessite http(s), donc pas en file://).
-  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  // Pas de cache hors ligne sur le serveur de test local (sinon les modifications ne s'affichent pas).
+  const isLocalDev = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !isLocalDev) {
     navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service worker :', err));
+  } else if ('serviceWorker' in navigator && isLocalDev) {
+    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {});
   }
   // Demande au navigateur de ne pas effacer les données enregistrées (progression).
   if (navigator.storage && navigator.storage.persist) {

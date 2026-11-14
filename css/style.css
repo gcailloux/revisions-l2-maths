@@ -389,6 +389,29 @@ ol.plan { list-style: none; padding: 0; margin: 0 0 8px; position: relative; }
   .rep-si, .rep-alors { font-size: 16px; }
 }
 
+/* ----- Copie d'un exercice (image hors écran + message) ----- */
+.export-wrap { position: fixed; left: -10000px; top: 0; z-index: -1; pointer-events: none; }
+.export-card {
+  /* toujours en clair, quel que soit le thème */
+  --text: #1c2230; --muted: #5d6878; --panel: #ffffff; --panel-2: #f8f8f6; --border: #e2e4e8; --border-strong: #cfd3da;
+  --ex: #237a3b; --ex-bg: #eefaf1; --code-bg: #f4f5f7; --hl: #ffe066; --sc-ink: var(--sc-ink-l, var(--sc));
+  width: 760px; padding: 24px 28px; background: #ffffff; color: #1c2230; font-family: var(--font-text); font-size: 18px; line-height: 1.6;
+  border-top: 6px solid var(--sc);
+}
+.export-card .xc-head { font-family: var(--font-ui); font-size: 13px; color: #5d6878; text-transform: uppercase; letter-spacing: .05em; }
+.export-card .xc-title { font-family: var(--font-ui); font-size: 21px; margin: 4px 0 12px; color: #1c2230; }
+.export-card .xc-body > p:first-child { margin-top: 0; }
+.export-card .xc-cor { margin-top: 14px; padding: 12px 16px; background: #eefaf1; border-left: 4px solid #237a3b; border-radius: 8px; }
+#toast {
+  position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translate(-50%, 30px); opacity: 0;
+  max-width: min(92vw, 560px); background: #1c2230; color: #fff; padding: 12px 16px; border-radius: 12px; z-index: 50;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .25); transition: opacity .2s, transform .2s; pointer-events: none; font-size: 15px;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+#toast .btn { min-height: 38px; }
+#toast .btn.ghost { color: #fff; border-color: rgba(255, 255, 255, .5); }
+
 /* ===================== Divers ===================== */
 .chapter-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 14.5px; }
 .chapter-nav .next { text-align: right; }

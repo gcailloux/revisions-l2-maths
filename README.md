@@ -28,6 +28,17 @@ La progression (statuts « À retravailler » / « Maîtrisé », exercices gén
 enregistrée **uniquement sur l'appareil** (localStorage). L'accueil permet de la sauvegarder dans un
 fichier et de la restaurer.
 
+## Copier un exercice
+
+Chaque exercice a un bouton **Copier** : il met dans le presse-papiers une **image** de l'énoncé
+(et de la correction si elle est affichée), à coller dans une appli de brouillon (GoodNotes,
+Notability, Freeform, Notes…), ainsi qu'une version **texte** avec les formules en LaTeX.
+Si le navigateur refuse la copie d'image, il propose de partager ou d'enregistrer l'image.
+La capture utilise `vendor/html-to-image` (embarqué, fonctionne hors ligne).
+
+Le cache hors ligne n'est pas activé sur le serveur de test local (localhost), pour que les
+modifications s'affichent immédiatement.
+
 ## Organisation
 
 ```
