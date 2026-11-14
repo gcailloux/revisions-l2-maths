@@ -138,6 +138,9 @@ main { padding: 28px 32px 80px; max-width: 1240px; width: 100%; padding-bottom: 
 .cr-title { display: flex; align-items: center; gap: 12px; }
 .cr-title .num { width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--sc); color: var(--sc-on); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
 .chapter-row.pending .num { background: var(--border-strong); color: var(--text); }
+.cr-sections { margin: 4px 0 0; padding-left: 1.1em; font-size: 14px; color: var(--muted); font-weight: 400; }
+.cr-sections li { margin: 1px 0; }
+.cr-title { align-items: flex-start; }
 .cr-links { display: flex; gap: 6px; flex-wrap: wrap; }
 .cr-links a { font-size: 13.5px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; color: var(--text); }
 .cr-links a:hover { border-color: var(--sc); color: var(--sc-ink); text-decoration: none; }

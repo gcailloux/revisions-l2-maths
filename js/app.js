@@ -94,7 +94,11 @@
     return '<span class="diff" title="Difficulté ' + d + '/3">' + '●'.repeat(d) + '<span class="off">' + '●'.repeat(3 - d) + '</span></span>';
   }
   function getStatus(key) { const s = state.status[key]; return s ? s.v : null; }
-  function reviewCount() { return Object.values(state.status).filter(s => s.v === 'review').length; }
+  // (on ignore les statuts de chapitres qui n'existent plus)
+  function reviewCount() { return Object.values(state.status).filter(s => s.v === 'review' && L2.get(s.sid, s.cid)).length; }
+  function sectionsList(c) {
+    return c.sections ? '<ul class="cr-sections">' + c.sections.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '';
+  }
   function chapterLink(sid, sec, cid) { return '#/s/' + sid + '/' + sec + (cid ? '/' + cid : ''); }
   function availableChapters(s) { return s.chapters.filter(c => L2.get(s.id, c.id)); }
   /* Couleurs de matière : --sc (couleur), --sc-ink-l (texte sur fond clair), --sc-on (texte sur fond --sc) */
@@ -512,7 +516,9 @@
     const C = L2.get(sid, cid);
     if (!C) {
       view.innerHTML = '<div class="pending-box"><h2>Chapitre en cours de rédaction</h2>' +
-        '<p>Le contenu de « ' + esc(ch.title) + ' » n\'est pas encore écrit. Les chapitres déjà disponibles :</p><ul>' +
+        '<p>Le contenu de « ' + esc(ch.title) + ' » n\'est pas encore écrit.</p>' +
+        (ch.sections ? '<p><b>Au programme :</b></p>' + sectionsList(ch) : '') +
+        '<p>Les chapitres déjà disponibles :</p><ul>' +
         availableChapters(s).map(c => '<li><a href="' + chapterLink(sid, sec, c.id) + '">Chapitre ' + c.num + ' — ' + esc(c.title) + '</a></li>').join('') +
         '</ul></div>';
       return;
@@ -527,7 +533,7 @@
       const read = state.read[s.id + '/' + c.id];
       return '<div class="chapter-row ' + (C ? '' : 'pending') + '">' +
         '<div class="cr-title"><span class="num">' + c.num + '</span><div><strong>' + esc(c.title) + '</strong>' +
-        (C ? (read ? ' <span class="tag ok">lu</span>' : '') : ' <span class="tag">en cours de rédaction</span>') + '</div></div>' +
+        (C ? (read ? ' <span class="tag ok">lu</span>' : '') : ' <span class="tag">en cours de rédaction</span>') + sectionsList(c) + '</div></div>' +
         (C ? '<div class="cr-links">' + SECTIONS.map(x => '<a href="' + chapterLink(s.id, x.id, c.id) + '">' + x.label +
           (x.id === 'exercices' ? ' <small>(' + C.exercices.length + ')</small>' : '') + '</a>').join('') + '</div>' : '') +
         '</div>';

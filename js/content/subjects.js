@@ -42,14 +42,21 @@ L2.subject({
 
 L2.subject({
   id: 'algo', name: 'Algorithmique', color: '#e8590c', ink: '#c2440a', on: '#ffffff',
-  desc: 'Algorithmique en Python : complexité, récursivité, preuves, tris, structures de données.',
+  desc: 'Algorithmique en Python : listes et tris élémentaires, arbres, tris élaborés.',
   chapters: [
-    { id: 'complexite', title: 'Bases et complexité' },
-    { id: 'recursivite', title: 'Récursivité' },
-    { id: 'correction', title: 'Correction : invariants et terminaison' },
-    { id: 'tris', title: 'Recherche et tris' },
-    { id: 'structures', title: 'Piles, files, dictionnaires' },
-    { id: 'arithmetique', title: 'Algorithmes arithmétiques' }
+    { id: 'listes', title: 'Listes', sections: [
+      'Opérations : recherche, insertion, suppression',
+      'Listes triées : tri par insertion, par sélection, à bulles ; recherche dichotomique',
+      'Efficacité d’un algorithme : pire des cas, cas moyen'] },
+    { id: 'arbres', title: 'Arbres', sections: [
+      'Terminologie : nœud, fils, père, racine, hauteur',
+      'Encodage des arbres (implémentations)',
+      'Parcours d’arbres : préfixe, postfixe, récursifs et itératifs',
+      'Arbres binaires de recherche : implémentation, parcours infixe, recherche, insertion, suppression'] },
+    { id: 'tris', title: 'Tris élaborés', sections: [
+      'Tri par tas : insertion, suppression, tri',
+      'Tri rapide : algorithmes récursif et itératif',
+      'Complexité des tris : tris élémentaires, tri par tas'] }
   ]
 });
 
