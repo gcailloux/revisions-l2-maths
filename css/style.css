@@ -203,6 +203,8 @@ table.t th, table.t td { border: 1px solid var(--border-strong); padding: 6px 10
 table.t th { background: var(--panel-2); }
 pre.code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 14px; line-height: 1.5; -webkit-overflow-scrolling: touch; }
 code { font-family: var(--font-mono); font-size: .9em; }
+pre.pseudo { border-left: 4px solid var(--sc); line-height: 1.6; }
+pre.pseudo .tk-kw { font-weight: 700; }
 :not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
 .tk-kw { color: #a626a4; font-weight: 600; } .tk-str { color: #50a14f; } .tk-num { color: #986801; }
 .tk-com { color: #8a8f98; font-style: italic; } .tk-fn { color: #4078f2; } .tk-bi { color: #0184bc; }

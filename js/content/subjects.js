@@ -42,7 +42,7 @@ L2.subject({
 
 L2.subject({
   id: 'algo', name: 'Algorithmique', color: '#e8590c', ink: '#c2440a', on: '#ffffff',
-  desc: 'Algorithmique en Python : listes et tris élémentaires, arbres, tris élaborés.',
+  desc: 'Algorithmique en pseudo-code : listes et tris élémentaires, arbres, tris élaborés.',
   chapters: [
     { id: 'listes', title: 'Listes', sections: [
       'Opérations : recherche, insertion, suppression',

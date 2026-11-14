@@ -68,9 +68,31 @@
     }
     return out + esc(src.slice(last));
   }
+  /* Pseudo-code (algorithmique) : mots-clés structurels en couleur */
+  const PSEUDO_KW = new Set(('fonction procédure fin pour de à faire par pas si alors sinon tant que ' +
+    'retourner et ou non vrai faux NUL répéter jusqu').split(' '));
+  function highlightPseudo(src) {
+    const re = /(\/\/[^\n]*)|([A-Za-zÀ-ÖØ-öø-ÿ_][A-Za-zÀ-ÖØ-öø-ÿ0-9_]*)|(\d+)/g;
+    let out = '', last = 0, m;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      if (m[1]) out += '<span class="tk-com">' + esc(m[1]) + '</span>';
+      else if (m[2]) {
+        const w = m[2];
+        if (PSEUDO_KW.has(w)) out += '<span class="tk-kw">' + w + '</span>';
+        else if (src[re.lastIndex] === '(') out += '<span class="tk-fn">' + w + '</span>';
+        else out += w;
+      } else out += '<span class="tk-num">' + m[3] + '</span>';
+      last = re.lastIndex;
+    }
+    return out + esc(src.slice(last));
+  }
   function typeset(el) {
     $$('pre.code code', el).forEach(c => {
-      if (!c.dataset.hl) { c.innerHTML = highlightPy(c.textContent); c.dataset.hl = '1'; }
+      if (c.dataset.hl) return;
+      const pseudo = c.parentElement.classList.contains('pseudo');
+      c.innerHTML = pseudo ? highlightPseudo(c.textContent) : highlightPy(c.textContent);
+      c.dataset.hl = '1';
     });
     if (window.renderMathInElement) {
       try {

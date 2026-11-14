@@ -36,6 +36,11 @@ window.L2 = (function () {
     /* Bloc de code Python (échappé, coloré au rendu). */
     code(src) {
       return '<pre class="code"><code>' + esc(src.replace(/^\n+|\s+$/g, '')) + '</code></pre>';
+    },
+
+    /* Bloc de pseudo-code (échappé, mots-clés colorés au rendu). */
+    algo(src) {
+      return '<pre class="code pseudo"><code>' + esc(src.replace(/^\n+|\s+$/g, '')) + '</code></pre>';
     }
   };
 })();
