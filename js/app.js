@@ -144,11 +144,27 @@
   }
 
   /* ======================= Exercices : construction ======================= */
+  /* Correction détaillée : chaîne HTML, ou objet { but, methode, etapes: [..], retenir }.
+     Elle est lue dans l'exercice (detail) ou dans le dictionnaire du chapitre (details[id],
+     details[id + '#n'] pour la n-ième variante rédigée). */
+  function chapterDetail(sid, cid, key) {
+    const C = L2.get(sid, cid);
+    return (C && C.details && C.details[key]) || null;
+  }
+  function detailHtml(d) {
+    if (!d) return '';
+    if (typeof d === 'string') return d;
+    return (d.but ? '<div class="det-sec"><div class="det-h">Ce qu’on cherche</div>' + d.but + '</div>' : '') +
+      (d.methode ? '<div class="det-sec"><div class="det-h">Méthode</div>' + d.methode + '</div>' : '') +
+      (d.etapes && d.etapes.length ? '<div class="det-sec"><div class="det-h">Étapes</div><ol class="det-steps">' + d.etapes.map(s => '<li>' + s + '</li>').join('') + '</ol></div>' : '') +
+      (d.retenir ? '<div class="det-retenir"><span class="det-h">À retenir</span>' + d.retenir + '</div>' : '');
+  }
   function bankExo(sid, cid, e, idx) {
     const key = sid + '/' + cid + '/' + e.id;
     return {
       key, sid, cid, label: 'Exercice ' + (idx + 1), title: e.title, diff: e.diff || 1,
       enonce: e.enonce, indication: e.indication, correction: e.correction,
+      detail: e.detail || chapterDetail(sid, cid, e.id),
       gid: e.gen || null, sims: e.similaires || null, exid: e.id, listKey: key
     };
   }
@@ -164,7 +180,7 @@
       catch (err) { console.error(err); out = { enonce: '<p>Erreur lors de la génération.</p>', correction: esc(String(err)) }; }
       return {
         key: listKey + '|' + item.g + '|' + item.s, sid, cid, label, title: out.title || g.title,
-        diff: g.diff || 1, enonce: out.enonce, indication: out.indication, correction: out.correction,
+        diff: g.diff || 1, enonce: out.enonce, indication: out.indication, correction: out.correction, detail: out.detail,
         gid: item.g, listKey, generated: true, item
       };
     }
@@ -176,6 +192,7 @@
     return {
       key: listKey + '|b|' + item.b, sid, cid, label, title: v.title || e.title, diff: v.diff || e.diff || 1,
       enonce: v.enonce, indication: v.indication, correction: v.correction,
+      detail: v.detail || chapterDetail(sid, cid, exid + '#' + (item.b + 1)),
       sims: e.similaires, exid, listKey, generated: true, item
     };
   }
@@ -210,9 +227,11 @@
       '<div class="exo-body">' + ex.enonce + '</div>' +
       '<div class="exo-ind" hidden><div class="box-title">Indication</div>' + (ex.indication || '') + '</div>' +
       '<div class="exo-cor" hidden><div class="box-title">Correction</div>' + (ex.correction || '<p>Pas de correction rédigée.</p>') + '</div>' +
+      (ex.detail ? '<div class="exo-det" hidden><div class="box-title">Correction détaillée</div>' + detailHtml(ex.detail) + '</div>' : '') +
       '<div class="exo-actions">' +
         (ex.indication ? '<button class="btn ghost" data-a="ind">Indication</button>' : '') +
         '<button class="btn" data-a="cor">Voir la correction</button>' +
+        (ex.detail ? '<button class="btn ghost" data-a="det" title="Correction pas à pas : méthode, chaque calcul justifié, ce qu’il faut retenir">Correction détaillée</button>' : '') +
         '<button class="btn ghost" data-a="copy" title="Copier l\'énoncé (et la correction si elle est affichée) pour le coller dans une autre appli">' +
           '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></svg>Copier</button>' +
         '<span class="grow"></span>' +
@@ -252,6 +271,11 @@
         const box = $('.exo-cor', el); box.hidden = !box.hidden;
         btn.textContent = box.hidden ? 'Voir la correction' : 'Masquer la correction';
         el.classList.toggle('cor-open', !box.hidden);
+      } else if (a === 'det') {
+        const box = $(':scope > .exo-det', el); box.hidden = !box.hidden;
+        btn.textContent = box.hidden ? 'Correction détaillée' : 'Masquer la correction détaillée';
+        btn.classList.toggle('on', !box.hidden);
+        if (!box.hidden) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else if (a === 'copy') {
         copyExercise(el, ex, btn);
       } else if (a === 'review' || a === 'ok') {
@@ -317,7 +341,8 @@
     const body = $(':scope > .exo-body', el);
     const corBox = $(':scope > .exo-cor', el);
     const withCor = corBox && !corBox.hidden;
-    return { s, ch, body, cor: withCor ? corBox : null };
+    const detBox = $(':scope > .exo-det', el);
+    return { s, ch, body, cor: withCor ? corBox : null, det: detBox && !detBox.hidden ? detBox : null };
   }
 
   // Carte claire, hors écran, servant à fabriquer l'image
@@ -330,6 +355,7 @@
       '<h3 class="xc-title">' + esc(ex.label) + ' — ' + ex.title + '</h3>';
     const b = p.body.cloneNode(true); b.className = 'xc-body'; card.appendChild(b);
     if (p.cor) { const c = p.cor.cloneNode(true); c.hidden = false; c.className = 'xc-cor'; card.appendChild(c); }
+    if (p.det) { const c = p.det.cloneNode(true); c.hidden = false; c.className = 'xc-cor xc-det'; card.appendChild(c); }
     const wrap = document.createElement('div');
     wrap.className = 'export-wrap';
     wrap.appendChild(card);
@@ -383,7 +409,7 @@
     label.textContent = 'Copie…';
     const { wrap, card, parts } = buildExportCard(el, ex);
     const text = exportText(card);
-    const what = parts.cor ? 'Énoncé et correction copiés' : 'Énoncé copié';
+    const what = parts.cor || parts.det ? 'Énoncé et correction copiés' : 'Énoncé copié';
     const pngPromise = renderPng(card);
     let ok = false;
     try {

@@ -30,6 +30,20 @@
           else if (al === 1) concl = R`<p>La série de Riemann $\sum \frac1n$ diverge ($\alpha = 1$). Les termes étant positifs, par le théorème des équivalents, $\sum u_n$ <strong>diverge</strong>.</p>`;
           else concl = R`<p>La série de Riemann $\sum \frac{1}{n^{${al}}}$ converge ($\alpha = ${al} > 1$). Les termes étant positifs, par le théorème des équivalents, $\sum u_n$ <strong>converge</strong>.</p>`;
           return {
+            detail: {
+              but: R`<p>Nature de $\sum u_n$ avec $u_n = \frac{${poly(P, 'n')}}{${poly(Q, 'n')}}$.</p>`,
+              methode: R`<p>Termes positifs → <strong>équivalent</strong> (quotient des termes de plus haut degré) → comparaison à une série de Riemann.</p>`,
+              etapes: [
+                R`<b>Signe.</b> Tous les coefficients sont positifs, donc numérateur et dénominateur sont $\gt 0$ pour $n \ge 1$ : $u_n \gt 0$.`,
+                R`<b>Numérateur.</b> Un polynôme est équivalent en $+\infty$ à son terme de plus haut degré : $${poly(P, 'n')} \sim ${mono(a, p)}$.`,
+                R`<b>Dénominateur.</b> $${poly(Q, 'n')} \sim ${mono(b, q)}$.`,
+                R`<b>Quotient.</b> Les équivalents passent au quotient : $u_n \sim \frac{${mono(a, p)}}{${mono(b, q)}} = ${eq}$.`,
+                al === 0
+                  ? R`<b>Conclusion.</b> $u_n \to ${ab.tex()} \neq 0$ : le terme général ne tend pas vers 0, la série <strong>diverge grossièrement</strong> (inutile de comparer à Riemann).`
+                  : R`<b>Conclusion.</b> $u_n \sim \frac{C}{n^{${al}}}$ avec $C = ${ab.tex()} \gt 0$ : même nature que la série de Riemann $\sum\frac{1}{n^{${al}}}$, qui ${al > 1 ? R`converge ($\alpha = ${al} \gt 1$)` : R`diverge ($\alpha = 1$)`}. Donc $\sum u_n$ <strong>${al > 1 ? 'converge' : 'diverge'}</strong>.`
+              ],
+              retenir: R`<p>Fraction rationnelle positive : $u_n \sim \frac{C}{n^{q-p}}$ ($q$, $p$ : degrés du dénominateur et du numérateur) ; convergence si et seulement si $q - p \ge 2$.</p>`
+            },
             enonce: R`<p>Déterminer la nature de la série de terme général $\displaystyle u_n = \frac{${poly(P, 'n')}}{${poly(Q, 'n')}}$, $n \ge 1$.</p>`,
             indication: R`<p>Les termes sont positifs : cherchez un équivalent simple de $u_n$ (quotient des termes de plus haut degré).</p>`,
             correction: R`<p>Pour $n \ge 1$, $u_n > 0$. Un polynôme est équivalent en $+\infty$ à son terme de plus haut degré :</p>
@@ -41,6 +55,18 @@
         const al = F(2 * k - 1, 2);
         const conv = al.val() > 1;
         return {
+          detail: {
+            but: R`<p>Nature d'une série dont le terme général contient une racine carrée.</p>`,
+            methode: R`<p>Termes positifs → équivalent en écrivant tout en <strong>puissances de $n$</strong> ($\sqrt n = n^{1/2}$) → Riemann.</p>`,
+            etapes: [
+              R`<b>Signe.</b> Numérateur et dénominateur sont positifs : $u_n \gt 0$.`,
+              R`<b>Numérateur.</b> $\sqrt n + ${c} \sim \sqrt n$ (car $\frac{${c}}{\sqrt n} \to 0$).`,
+              R`<b>Dénominateur.</b> $${aa === 1 ? '' : aa}n${k > 1 ? '^{' + k + '}' : ''} + ${d} \sim ${aa === 1 ? '' : aa}n${k > 1 ? '^{' + k + '}' : ''}$.`,
+              R`<b>Quotient.</b> $u_n \sim \frac{n^{1/2}}{${aa === 1 ? '' : aa}n^{${k}}} = \frac{1}{${aa === 1 ? '' : aa}\,n^{${k} - 1/2}} = \frac{1}{${aa === 1 ? '' : aa}\,n^{${al.texSlash()}}}$.`,
+              R`<b>Conclusion.</b> Riemann d'exposant $\alpha = ${al.texSlash()}$ ${conv ? R`$\gt 1$ : <strong>converge</strong>` : R`$\le 1$ : <strong>diverge</strong>`} (théorème des équivalents pour des termes positifs).`
+            ],
+            retenir: R`<p>Écrire chaque terme comme une puissance de $n$ et soustraire les exposants.</p>`
+          },
           enonce: R`<p>Déterminer la nature de la série de terme général $\displaystyle u_n = \frac{\sqrt{n} + ${c}}{${aa === 1 ? '' : aa}n${k > 1 ? '^{' + k + '}' : ''} + ${d}}$.</p>`,
           indication: R`<p>Écrire $u_n \sim \dfrac{C}{n^\alpha}$ et comparer $\alpha$ à $1$.</p>`,
           correction: R`<p>$u_n > 0$ et $u_n \sim \dfrac{\sqrt n}{${aa === 1 ? '' : aa}n${k > 1 ? '^{' + k + '}' : ''}} = \dfrac{1}{${aa === 1 ? '' : aa}\,n^{${al.texSlash()}}}$.</p>
@@ -56,6 +82,17 @@
         if (form === 'expfact') {
           const a = r.int(2, 9);
           return {
+            detail: {
+              but: R`<p>Nature de $\sum\frac{${a}^n}{n!}$.</p>`,
+              methode: R`<p>Factorielle → <strong>règle de d'Alembert</strong> : limite de $\frac{u_{n+1}}{u_n}$.</p>`,
+              etapes: [
+                R`<b>Signe.</b> $u_n \gt 0$.`,
+                R`<b>Quotient.</b> $\frac{u_{n+1}}{u_n} = \frac{${a}^{n+1}}{(n+1)!} \times \frac{n!}{${a}^n} = \frac{${a}}{n+1}$ (car $(n+1)! = (n+1)\,n!$).`,
+                R`<b>Limite.</b> $\frac{${a}}{n+1} \to 0 \lt 1$ : la série <strong>converge</strong>.`,
+                R`<b>Pour aller plus loin.</b> Sa somme vaut $e^{${a}}$ (série exponentielle).`
+              ],
+              retenir: R`<p>$\frac{(n+1)!}{n!} = n + 1$ : c'est ce qui rend d'Alembert efficace avec les factorielles.</p>`
+            },
             enonce: R`<p>Nature de la série $\displaystyle\sum_{n\ge0} \frac{${a}^n}{n!}$ ?</p>`,
             correction: R`<p>$u_n > 0$ et $\dfrac{u_{n+1}}{u_n} = \dfrac{${a}^{n+1}}{(n+1)!}\cdot\dfrac{n!}{${a}^n} = \dfrac{${a}}{n+1} \longrightarrow 0 < 1$. D'après la règle de d'Alembert, la série <strong>converge</strong> (sa somme vaut $e^{${a}}$, cf. séries entières).</p>`
           };
@@ -67,6 +104,16 @@
           const l = F(p, q);
           const conv = l.val() < 1;
           return {
+            detail: {
+              but: R`<p>Nature de $\sum n^{${k}}\left(${l.tex()}\right)^n$.</p>`,
+              methode: R`<p>Polynôme × puissance $n$-ième → d'Alembert : c'est la puissance qui impose la limite.</p>`,
+              etapes: [
+                R`<b>Quotient.</b> $\frac{u_{n+1}}{u_n} = \frac{(n+1)^{${k}}}{n^{${k}}} \times ${l.tex()} = \left(1 + \frac1n\right)^{${k}} \times ${l.tex()}$.`,
+                R`<b>Limite.</b> L'exposant $${k}$ est fixé, donc $\left(1 + \frac1n\right)^{${k}} \to 1$ et le quotient tend vers $${l.tex()}$.`,
+                conv ? R`<b>Conclusion.</b> $${l.tex()} \lt 1$ : <strong>converge</strong>.` : R`<b>Conclusion.</b> $${l.tex()} \gt 1$ : <strong>diverge</strong> ; d'ailleurs $u_n \to +\infty$ (divergence grossière).`
+              ],
+              retenir: R`<p>Le facteur polynomial ne change pas la limite du quotient : seule la raison de la puissance compte.</p>`
+            },
             enonce: R`<p>Nature de la série $\displaystyle\sum_{n\ge1} n^{${k}}\left(${l.tex()}\right)^n$ ?</p>`,
             correction: R`<p>$u_n > 0$ et $\dfrac{u_{n+1}}{u_n} = \left(\dfrac{n+1}{n}\right)^{${k}}\cdot ${l.tex()} \longrightarrow ${l.tex()}$.</p>
               <p>${conv ? R`Comme $${l.tex()} < 1$, la série <strong>converge</strong> par la règle de d'Alembert.` : R`Comme $${l.tex()} > 1$, la série <strong>diverge</strong> (grossièrement : $u_n \to +\infty$).`}</p>`
@@ -75,6 +122,16 @@
         if (form === 'factexp') {
           const a = r.int(2, 10);
           return {
+            detail: {
+              but: R`<p>Nature de $\sum\frac{n!}{${a}^n}$.</p>`,
+              methode: R`<p>d'Alembert, ou montrer directement que le terme général ne tend pas vers 0.</p>`,
+              etapes: [
+                R`<b>Quotient.</b> $\frac{u_{n+1}}{u_n} = \frac{(n+1)!}{${a}^{n+1}} \times \frac{${a}^n}{n!} = \frac{n+1}{${a}}$.`,
+                R`<b>Limite.</b> $\frac{n+1}{${a}} \to +\infty \gt 1$ : la série <strong>diverge</strong>.`,
+                R`<b>Plus précisément.</b> Dès que $n + 1 \ge ${a}$, on a $u_{n+1} \ge u_n$ : la suite positive $(u_n)$ croît à partir de ce rang, donc ne tend pas vers 0 (divergence grossière).`
+              ],
+              retenir: R`<p>La factorielle l'emporte sur toute puissance $a^n$.</p>`
+            },
             enonce: R`<p>Nature de la série $\displaystyle\sum_{n\ge0} \frac{n!}{${a}^n}$ ?</p>`,
             correction: R`<p>$\dfrac{u_{n+1}}{u_n} = \dfrac{n+1}{${a}} \longrightarrow +\infty > 1$ : la série <strong>diverge</strong> (grossièrement, car $(u_n)$ est croissante à partir d'un certain rang et ne tend pas vers $0$).</p>`
           };
@@ -82,6 +139,17 @@
         const a = r.pick([1, 2, 3, 5, 6, 7]);
         const l = F(a, 4), conv = a < 4;
         return {
+          detail: {
+            but: R`<p>Nature de $\sum\frac{(n!)^2}{(2n)!}${a === 1 ? '' : R`\,${a}^n`}$.</p>`,
+            methode: R`<p>d'Alembert, en simplifiant soigneusement les factorielles.</p>`,
+            etapes: [
+              R`<b>Factorielles.</b> $\big((n+1)!\big)^2 = (n+1)^2(n!)^2$ et $(2n+2)! = (2n+2)(2n+1)\,(2n)!$.`,
+              R`<b>Quotient.</b> $\frac{u_{n+1}}{u_n} = \frac{(n+1)^2}{(2n+2)(2n+1)}${a === 1 ? '' : R` \times ${a}`} = \frac{${a === 1 ? '' : a}(n+1)}{2(2n+1)}$ (on simplifie par $n + 1$, car $2n + 2 = 2(n+1)$).`,
+              R`<b>Limite.</b> Quotient des termes dominants : $\frac{${a}n}{4n} = \frac{${a}}{4}$, donc la limite vaut $${l.tex()}$.`,
+              R`<b>Conclusion.</b> ${conv ? R`$${l.tex()} \lt 1$ : <strong>converge</strong>.` : R`$${l.tex()} \gt 1$ : <strong>diverge</strong>.`}`
+            ],
+            retenir: R`<p>$(2n+2)! = (2n+2)(2n+1)(2n)!$ : il y a <strong>deux</strong> nouveaux facteurs, pas un seul.</p>`
+          },
           enonce: R`<p>Nature de la série $\displaystyle\sum_{n\ge0} \frac{(n!)^2}{(2n)!}\,${a === 1 ? '' : a + '^n'}$ ?</p>`.replace(R`\,$`, '$'),
           indication: R`<p>$(2n+2)! = (2n+2)(2n+1)\,(2n)!$.</p>`,
           correction: R`<p>$\dfrac{u_{n+1}}{u_n} = \dfrac{(n+1)^2}{(2n+2)(2n+1)}${a === 1 ? '' : R`\cdot ${a}`} = \dfrac{${a === 1 ? '' : a}(n+1)}{2(2n+1)} \longrightarrow ${l.tex()}$.</p>
@@ -104,6 +172,17 @@
         if (n0 > 0) parts.push(n0 === 1 ? 'q' : 'q^{' + n0 + '}');
         const numSym = parts.join(R`\,`) || '1';
         return {
+          detail: {
+            but: R`<p>Justifier la convergence et calculer $\sum_{n \ge ${n0}}${ctex}\left(${x.tex()}\right)^n$.</p>`,
+            methode: R`<p>Série géométrique de raison $q$ : converge si et seulement si $|q| \lt 1$, et $\sum_{n \ge n_0}q^n = \frac{q^{n_0}}{1 - q}$ (« premier terme sur $1 - q$ »).</p>`,
+            etapes: [
+              R`<b>Raison.</b> $q = ${x.tex()}$ et $|q| = ${x.abs().tex()} \lt 1$ : la série converge.`,
+              R`<b>Premier terme.</b> Pour $n = ${n0}$ : $${ctex}\left(${x.tex()}\right)^{${n0}} = ${numV.tex()}$.`,
+              R`<b>Dénominateur.</b> $1 - q = 1 - \left(${x.tex()}\right) = ${den.tex()}$.`,
+              R`<b>Somme.</b> $\frac{${numV.tex()}}{${den.tex()}} = ${S.tex()}$.`
+            ],
+            retenir: R`<p>« Premier terme sur 1 moins la raison » : cette forme évite les erreurs de décalage d'indice.</p>`
+          },
           enonce: R`<p>Justifier la convergence et calculer $\displaystyle\sum_{n=${n0}}^{+\infty} ${ctex}\left(${x.tex()}\right)^n$.</p>`,
           indication: R`<p>Factoriser par le premier terme : $\sum_{n\ge n_0} q^n = \dfrac{q^{n_0}}{1-q}$ si $|q| < 1$.</p>`,
           correction: R`<p>C'est une série géométrique de raison $q = ${x.tex()}$, avec $|q| < 1$ : elle converge, et</p>
@@ -125,6 +204,17 @@
         const terms = [];
         for (let k = a + 1; k <= b; k++) terms.push(R`\frac{1}{${k}}`);
         return {
+          detail: {
+            but: R`<p>Convergence et somme de $\sum_{n \ge 1}\frac{${c}}{(${den(a)})(${den(b)})}$.</p>`,
+            methode: R`<p>Décomposer en éléments simples pour faire apparaître une différence, puis calculer les sommes partielles : elles se <strong>télescopent</strong>.</p>`,
+            etapes: [
+              R`<b>Éléments simples.</b> $\frac{1}{(n+a)(n+b)} = \frac{1}{b - a}\left(\frac1{n+a} - \frac1{n+b}\right)$ ; on vérifie en réduisant au même dénominateur : $\frac{(n+b) - (n+a)}{(n+a)(n+b)} = \frac{b - a}{(n+a)(n+b)}$. Ici $b - a = ${dlt}$, d'où $u_n = ${coef.tex()}\left(\frac1{${den(a)}} - \frac1{${den(b)}}\right)$.`,
+              R`<b>Somme partielle.</b> Avec $k = ${den(a)}$ puis $k = ${den(b)}$ : $\sum_{n=1}^N\frac1{${den(a)}} = \sum_{k=${a + 1}}^{${a ? 'N+' + a : 'N'}}\frac1k$ et $\sum_{n=1}^N\frac1{${den(b)}} = \sum_{k=${b + 1}}^{N+${b}}\frac1k$. Dans la différence, les termes communs disparaissent.`,
+              R`<b>Ce qui reste.</b> $S_N = ${coef.tex()}\left(\sum_{k=${a + 1}}^{${b}}\frac1k - \sum_{k=${a ? 'N+' + (a + 1) : 'N+1'}}^{N+${b}}\frac1k\right)$. La seconde somme a ${dlt} terme${dlt > 1 ? 's' : ''}, chacun tendant vers 0 quand $N \to +\infty$.`,
+              R`<b>Limite.</b> $S_N \to ${coef.tex()}\left(${terms.join(' + ')}\right) = ${S.tex()}$ : la série converge et c'est sa somme.`
+            ],
+            retenir: R`<p>Télescopage : seuls quelques premiers et derniers termes survivent ; les derniers tendent vers 0.</p>`
+          },
           enonce: R`<p>Montrer que la série $\displaystyle\sum_{n\ge1} \frac{${c}}{(${den(a)})(${den(b)})}$ converge et calculer sa somme.</p>`,
           indication: R`<p>Décomposer en éléments simples : $\dfrac{1}{(n+a)(n+b)} = \dfrac{1}{b-a}\left(\dfrac{1}{n+a} - \dfrac{1}{n+b}\right)$.</p>`,
           correction: R`<p>Décomposition : $\dfrac{${c}}{(${den(a)})(${den(b)})} = ${coef.isOne() ? '' : coef.tex()}\left(\dfrac{1}{${den(a)}} - \dfrac{1}{${den(b)}}\right)$.</p>
@@ -145,6 +235,17 @@
         const pwN = al.isOne() ? String(N + 1) : R`${N + 1}^{${al.texSlash()}}`;
         const bound = Math.pow(N + 1, -al.val());
         return {
+          detail: {
+            but: R`<p>Convergence (absolue ou non) de $\sum\frac{(-1)^n}{${pw}}$ et contrôle du reste $R_{${N}}$.</p>`,
+            methode: R`<p>Convergence absolue : Riemann sur $|u_n|$. Sinon : <strong>critère spécial des séries alternées</strong>, qui donne aussi $|R_N| \le a_{N+1}$ et le signe du reste.</p>`,
+            etapes: [
+              R`<b>Valeur absolue.</b> $|u_n| = \frac1{${pw}}$ : Riemann d'exposant $\alpha = ${al.texSlash()}$, ${absConv ? R`convergente ($\alpha \gt 1$). La série converge <strong>absolument</strong>, donc converge.` : R`divergente ($\alpha \le 1$) : pas de convergence absolue.`}`,
+              R`<b>Critère spécial.</b> $u_n = (-1)^na_n$ avec $a_n = \frac1{${pw}}$ : $a_n \ge 0$, $(a_n)$ décroît (puissance positive de $n$ au dénominateur) et tend vers 0. ${absConv ? 'Le critère s’applique aussi, ce qui sert pour le reste.' : R`Donc $\sum u_n$ <strong>converge</strong> : elle est semi-convergente.`}`,
+              R`<b>Majoration du reste.</b> Le critère donne $|R_N| \le a_{N+1}$ : $|R_{${N}}| \le \frac{1}{${pwN}} \approx ${ML.dec(bound, bound < 0.001 ? 6 : 4)}$.`,
+              R`<b>Signe du reste.</b> $R_N$ a le signe de son premier terme $u_{N+1}$, de signe $(-1)^{${N + 1}}$ : ${(N + 1) % 2 === 0 ? 'positif' : 'négatif'}.`
+            ],
+            retenir: R`<p>Série alternée : le reste est majoré par le premier terme négligé, et il a son signe.</p>`
+          },
           enonce: R`<p>Soit $u_n = \dfrac{(-1)^n}{${pw}}$ pour $n \ge 1$.</p><ol><li>La série $\sum u_n$ est-elle absolument convergente ? convergente ?</li><li>Majorer $|R_{${N}}|$, où $R_N = \sum_{n > N} u_n$, et donner le signe de $R_{${N}}$.</li></ol>`,
           correction: R`<p>1. $|u_n| = \dfrac{1}{${pw}}$ : série de Riemann d'exposant $${al.texSlash()}$, ${absConv ? R`<strong>convergente</strong> car $${al.texSlash()} > 1$ : $\sum u_n$ est absolument convergente, donc convergente.` : R`<strong>divergente</strong> car $${al.texSlash()} \le 1$ : pas de convergence absolue.`}</p>
             ${absConv ? '' : R`<p>Mais $u_n = (-1)^n a_n$ avec $a_n = \dfrac1{${pw}}$ positive, décroissante et de limite nulle : par le critère spécial des séries alternées, $\sum u_n$ <strong>converge</strong>. Elle est donc <em>semi-convergente</em>.</p>`}
@@ -463,8 +564,124 @@
     { etape: 5, si: R`Des puissances $q^n$ à sommer`, alors: R`<b>Géométrique</b> : $\frac{\text{premier terme}}{1 - q}$ ; avec $nq^n$, calculer $S_N - qS_N$.` }
   ];
 
+
+  /* ------------------------------------------------------------------ */
+  /* Corrections détaillées (bouton « Correction détaillée »)            */
+  /* ------------------------------------------------------------------ */
+  const details = {
+    equivalents: {
+      but: R`<p>Déterminer la nature de quatre séries à termes positifs.</p>`,
+      methode: R`<p><strong>Théorème des équivalents</strong> : si $u_n \ge 0$ (à partir d'un rang) et $u_n \sim v_n$, alors $\sum u_n$ et $\sum v_n$ ont même nature. On compare ensuite à une série de Riemann $\sum\frac1{n^\alpha}$ (convergente ssi $\alpha \gt 1$).</p>`,
+      etapes: [
+        R`<b>a) Signe.</b> $\ln(1 + x) \gt 0$ pour $x \gt 0$, donc $u_n \gt 0$. <b>Équivalent.</b> $x = \frac1{n^2} \to 0$ et $\ln(1 + x) \sim x$, donc $u_n \sim \frac1{n^2}$. Riemann $\alpha = 2 \gt 1$ : <strong>converge</strong>.`,
+        R`<b>b) Signe.</b> $\cos x \lt 1$ pour $0 \lt x \le 1$, donc $v_n \gt 0$. <b>Équivalent.</b> $1 - \cos x \sim \frac{x^2}2$ avec $x = \frac1n$ : $v_n \sim \frac1{2n^2}$. <strong>Converge</strong> (même nature que $\sum\frac1{n^2}$, la constante $\frac12$ ne change rien).`,
+        R`<b>c) Signe.</b> $0 \lt \frac1n \le 1 \lt \pi$, donc $\sin\frac1n \gt 0$. <b>Équivalent.</b> $\sin x \sim x$ : $w_n \sim \frac1n$, série harmonique : <strong>diverge</strong>.`,
+        R`<b>d) Signe.</b> Pour $n \ge 1$, $n^4 \ge n$ donc $n^4 - n + 3 \gt 0$ : $x_n \gt 0$. <b>Équivalent.</b> Un polynôme est équivalent à son terme de plus haut degré : $x_n \sim \frac{n^2}{n^4} = \frac1{n^2}$. <strong>Converge</strong>.`
+      ],
+      retenir: R`<p>Ordre de travail : <strong>signe</strong>, puis <strong>équivalent</strong> (formules usuelles en 0 avec $x = \frac1n \to 0$), puis <strong>Riemann</strong>. Sans positivité, le théorème des équivalents peut être faux.</p>`
+    },
+    dalembert: {
+      but: R`<p>Déterminer la nature de deux séries contenant des puissances $n$-ièmes et des factorielles.</p>`,
+      methode: R`<p><strong>Règle de d'Alembert</strong> : si $u_n \gt 0$ et $\frac{u_{n+1}}{u_n} \to \ell$, la série converge si $\ell \lt 1$, diverge si $\ell \gt 1$ (on ne peut rien dire si $\ell = 1$).</p>`,
+      etapes: [
+        R`<b>1) Quotient.</b> $u_n = \frac{n^3}{3^n} \gt 0$ et $\frac{u_{n+1}}{u_n} = \frac{(n+1)^3}{3^{n+1}} \cdot \frac{3^n}{n^3} = \frac13\left(\frac{n+1}{n}\right)^3$.`,
+        R`<b>1) Limite.</b> $\frac{n+1}{n} \to 1$, donc le quotient tend vers $\frac13 \lt 1$ : <strong>converge</strong>.`,
+        R`<b>2) Quotient.</b> $v_n = \frac{2^n\,n!}{n^n}$ : $\frac{v_{n+1}}{v_n} = \frac{2^{n+1}(n+1)!}{(n+1)^{n+1}} \cdot \frac{n^n}{2^n\,n!} = \frac{2(n+1)\,n^n}{(n+1)^{n+1}} = 2\left(\frac{n}{n+1}\right)^n$ (on simplifie $(n+1)!/n! = n + 1$ et $(n+1)^{n+1} = (n+1)(n+1)^n$).`,
+        R`<b>2) Limite.</b> $\left(\frac{n}{n+1}\right)^n = \left(1 + \frac1n\right)^{-n} = \exp\left(-n\ln\left(1 + \frac1n\right)\right)$, et $n\ln(1 + \frac1n) \to 1$ (car $\ln(1 + x) \sim x$). Donc le quotient tend vers $\frac2e \approx 0{,}74 \lt 1$ : <strong>converge</strong>.`,
+        R`<b>Remarque.</b> Avec $3^n$ au lieu de $2^n$, la limite serait $\frac3e \approx 1{,}10 \gt 1$ : divergence.`
+      ],
+      retenir: R`<p>Factorielles ou puissances $n$-ièmes → d'Alembert. Limite classique : $\left(1 + \frac1n\right)^n \to e$.</p>`
+    },
+    'somme-geom': {
+      but: R`<p>Calculer deux sommes de séries géométriques.</p>`,
+      methode: R`<p>$\sum_{n \ge n_0}q^n = \frac{q^{n_0}}{1 - q}$ si $|q| \lt 1$ (« premier terme sur $1 - $ raison ») ; linéarité pour séparer les sommes.</p>`,
+      etapes: [
+        R`<b>1) Séparer.</b> $\frac{2^n + (-1)^n}{3^n} = \left(\frac23\right)^n + \left(-\frac13\right)^n$. Les deux séries géométriques convergent ($|q| \lt 1$) : on peut sommer séparément (linéarité, valable seulement si les deux convergent).`,
+        R`<b>1) Sommes.</b> $\sum_{n \ge 0}\left(\frac23\right)^n = \frac{1}{1 - 2/3} = 3$ et $\sum_{n \ge 0}\left(-\frac13\right)^n = \frac1{1 + 1/3} = \frac34$. Total $\frac{15}4$.`,
+        R`<b>2) Premier terme.</b> La somme commence à $n = 2$ : premier terme $\left(\frac14\right)^2 = \frac1{16}$.`,
+        R`<b>2) Formule.</b> $\sum_{n \ge 2}\left(\frac14\right)^n = \frac{1/16}{1 - 1/4} = \frac{1/16}{3/4} = \frac1{12}$.`
+      ],
+      retenir: R`<p>Ne jamais oublier de vérifier $|q| \lt 1$ avant d'écrire la formule.</p>`
+    },
+    telescope: {
+      but: R`<p>Montrer la convergence de $\sum\frac1{n(n+1)(n+2)}$ et calculer sa somme.</p>`,
+      methode: R`<p>Écrire $u_n = a_n - a_{n+1}$ (ou un multiple) : les sommes partielles se <strong>télescopent</strong>, $S_N = a_1 - a_{N+1}$.</p>`,
+      etapes: [
+        R`<b>Vérifier la décomposition.</b> $\frac{1}{n(n+1)} - \frac{1}{(n+1)(n+2)} = \frac{(n+2) - n}{n(n+1)(n+2)} = \frac{2}{n(n+1)(n+2)}$. Donc $u_n = \frac12(a_n - a_{n+1})$ avec $a_n = \frac1{n(n+1)}$.`,
+        R`<b>Somme partielle.</b> $S_N = \frac12\sum_{n=1}^N(a_n - a_{n+1}) = \frac12\big[(a_1 - a_2) + (a_2 - a_3) + \dots + (a_N - a_{N+1})\big] = \frac12(a_1 - a_{N+1})$.`,
+        R`<b>Limite.</b> $a_{N+1} \to 0$ et $a_1 = \frac12$, donc $S_N \to \frac14$ : la série converge (ses sommes partielles ont une limite finie) et sa somme vaut $\frac14$.`
+      ],
+      retenir: R`<p>Converger, c'est avoir des sommes partielles convergentes : avec un télescopage, on les calcule exactement.</p>`
+    },
+    bertrand: {
+      but: R`<p>Nature de $\sum\frac1{n\ln n}$ et $\sum\frac1{n(\ln n)^2}$.</p>`,
+      methode: R`<p><strong>Comparaison série-intégrale</strong> : si $f$ est continue, positive et <strong>décroissante</strong> sur $[2, +\infty[$, alors $\sum f(n)$ et $\int_2^{+\infty}f$ ont même nature.</p>`,
+      etapes: [
+        R`<b>Hypothèses pour $f(t) = \frac1{t\ln t}$.</b> Sur $[2, +\infty[$, $t$ et $\ln t$ sont positifs et croissants, donc $t\ln t$ aussi, et $f$ est continue, positive, décroissante.`,
+        R`<b>Primitive.</b> $\big(\ln(\ln t)\big)' = \frac{1}{\ln t} \cdot \frac1t = f(t)$. Donc $\int_2^n f = \ln\ln n - \ln\ln 2 \to +\infty$ : l'intégrale diverge, la série <strong>diverge</strong>.`,
+        R`<b>Hypothèses pour $g(t) = \frac1{t(\ln t)^2}$.</b> Même raisonnement : continue, positive, décroissante.`,
+        R`<b>Primitive.</b> $\left(-\frac1{\ln t}\right)' = \frac{1}{(\ln t)^2} \cdot \frac1t = g(t)$. Donc $\int_2^n g = \frac1{\ln 2} - \frac1{\ln n} \to \frac1{\ln 2}$ : l'intégrale converge, la série <strong>converge</strong>.`
+      ],
+      retenir: R`<p>Série de Bertrand $\sum\frac{1}{n(\ln n)^\beta}$ : convergente si et seulement si $\beta \gt 1$. Primitive à reconnaître : $\frac{u'}{u}$ et $\frac{u'}{u^2}$ avec $u = \ln t$.</p>`
+    },
+    'bertrand#1': {
+      but: R`<p>Encadrer $H_n$ et en déduire $H_n \sim \ln n$.</p>`,
+      methode: R`<p>Encadrer chaque $\frac1k$ par des intégrales de $\frac1t$ (fonction décroissante), puis sommer.</p>`,
+      etapes: [
+        R`<b>Encadrement d'un terme.</b> Pour $t \in [k, k+1]$, $\frac1t \le \frac1k$ ; en intégrant : $\int_k^{k+1}\frac{\dd t}{t} \le \frac1k$. Pour $t \in [k-1, k]$ ($k \ge 2$), $\frac1t \ge \frac1k$ : $\frac1k \le \int_{k-1}^k\frac{\dd t}t$.`,
+        R`<b>Minoration.</b> On somme la 1<sup>re</sup> inégalité pour $k = 1..n$ (relation de Chasles) : $\int_1^{n+1}\frac{\dd t}t = \ln(n+1) \le H_n$.`,
+        R`<b>Majoration.</b> On somme la 2<sup>e</sup> pour $k = 2..n$ : $H_n - 1 \le \int_1^n\frac{\dd t}t = \ln n$.`,
+        R`<b>Équivalent.</b> En divisant par $\ln n$ : $\frac{\ln(n+1)}{\ln n} \le \frac{H_n}{\ln n} \le \frac{1 + \ln n}{\ln n}$ ; les deux bornes tendent vers 1 (car $\ln(n+1) = \ln n + \ln(1 + \frac1n)$), gendarmes : $H_n \sim \ln n$.`
+      ],
+      retenir: R`<p>Fonction décroissante : $\int_k^{k+1}f \le f(k) \le \int_{k-1}^kf$.</p>`
+    },
+    'bertrand#2': {
+      but: R`<p>Encadrer le reste $R_n = \sum_{k \gt n}\frac1{k^2}$ et en déduire un équivalent.</p>`,
+      methode: R`<p>Même encadrement intégral que pour $H_n$, avec $\frac1{t^2}$ et des intégrales convergentes jusqu'à $+\infty$.</p>`,
+      etapes: [
+        R`<b>Encadrement d'un terme.</b> $t \mapsto \frac1{t^2}$ décroît : $\int_k^{k+1}\frac{\dd t}{t^2} \le \frac1{k^2} \le \int_{k-1}^k\frac{\dd t}{t^2}$.`,
+        R`<b>Sommation.</b> Pour $k$ de $n + 1$ à $+\infty$ : $\int_{n+1}^{+\infty}\frac{\dd t}{t^2} \le R_n \le \int_n^{+\infty}\frac{\dd t}{t^2}$.`,
+        R`<b>Calcul.</b> $\int_a^{+\infty}\frac{\dd t}{t^2} = \left[-\frac1t\right]_a^{+\infty} = \frac1a$ : $\frac1{n+1} \le R_n \le \frac1n$.`,
+        R`<b>Équivalent.</b> En multipliant par $n$ : $\frac{n}{n+1} \le nR_n \le 1$, donc $nR_n \to 1$ et $R_n \sim \frac1n$.`
+      ],
+      retenir: R`<p>Le reste d'une série de Riemann convergente $\sum\frac1{k^\alpha}$ est de l'ordre de $\frac{1}{(\alpha - 1)n^{\alpha - 1}}$.</p>`
+    },
+    alternee: {
+      but: R`<p>Étudier $\sum\frac{(-1)^n}{\sqrt n}$ : convergence, convergence absolue, et le carré du terme général.</p>`,
+      methode: R`<p><strong>Critère spécial des séries alternées</strong> : si $a_n \ge 0$ décroît vers 0, $\sum(-1)^na_n$ converge. Convergence absolue : Riemann sur $|u_n|$.</p>`,
+      etapes: [
+        R`<b>Critère spécial.</b> $a_n = \frac1{\sqrt n}$ est positive, décroissante (la racine est croissante) et tend vers 0 : $\sum u_n$ <strong>converge</strong>.`,
+        R`<b>Convergence absolue.</b> $|u_n| = \frac1{n^{1/2}}$ : Riemann avec $\alpha = \frac12 \le 1$, divergente. La série est <strong>semi-convergente</strong>.`,
+        R`<b>Carré.</b> $u_n^2 = \frac1n$ : $\sum u_n^2$ diverge (série harmonique), alors que $\sum u_n$ converge.`
+      ],
+      retenir: R`<p>Convergence absolue ⟹ convergence, mais la réciproque est fausse. Et $\sum u_n$ convergente n'implique pas $\sum u_n^2$ convergente.</p>`
+    },
+    piege: {
+      but: R`<p>Montrer que le théorème des équivalents est faux sans hypothèse de signe.</p>`,
+      methode: R`<p>Factoriser par le terme dominant, puis développement limité de $\frac{1}{1+x}$ avec $x \to 0$ ; enfin découper $u_n$ en séries de natures connues.</p>`,
+      etapes: [
+        R`<b>Factorisation.</b> $\sqrt n + (-1)^n = \sqrt n\left(1 + \frac{(-1)^n}{\sqrt n}\right)$, donc $u_n = \frac{(-1)^n}{\sqrt n} \cdot \frac{1}{1 + x}$ avec $x = \frac{(-1)^n}{\sqrt n} \to 0$.`,
+        R`<b>Équivalent.</b> $\frac1{1 + x} \to 1$, donc $u_n \sim \frac{(-1)^n}{\sqrt n}$.`,
+        R`<b>Développement.</b> $\frac1{1+x} = 1 - x + O(x^2)$, d'où $u_n = x - x^2 + O(x^3)$. Or $x^2 = \frac1n$ et $x^3 = O\left(\frac1{n^{3/2}}\right)$ : $u_n = \frac{(-1)^n}{\sqrt n} - \frac1n + O\left(\frac1{n^{3/2}}\right)$.`,
+        R`<b>Trois morceaux.</b> $\sum\frac{(-1)^n}{\sqrt n}$ converge (critère spécial) ; $\sum O(n^{-3/2})$ converge absolument (Riemann $\frac32 \gt 1$) ; $\sum\frac1n$ diverge.`,
+        R`<b>Conclusion.</b> Convergente + divergente + convergente = <strong>divergente</strong>. Pourtant $u_n \sim \frac{(-1)^n}{\sqrt n}$, terme d'une série convergente : sans signe constant, les équivalents ne transmettent pas la nature.`
+      ],
+      retenir: R`<p>Terme de signe variable : faire un <strong>développement asymptotique</strong> (pas seulement un équivalent) jusqu'à un reste absolument convergent.</p>`
+    },
+    'calcul-somme': {
+      but: R`<p>Calculer $\sum_{n \ge 0}\frac{n}{2^n}$.</p>`,
+      methode: R`<p>Convergence par d'Alembert ; calcul par la technique « $S_N - qS_N$ » (comme pour la somme géométrique), avec un décalage d'indice.</p>`,
+      etapes: [
+        R`<b>Convergence.</b> $\frac{u_{n+1}}{u_n} = \frac{n+1}{2^{n+1}} \cdot \frac{2^n}{n} = \frac{n+1}{2n} \to \frac12 \lt 1$.`,
+        R`<b>Décalage d'indice.</b> $\frac12S_N = \sum_{n=0}^N\frac{n}{2^{n+1}} = \sum_{m=1}^{N+1}\frac{m - 1}{2^m}$ (avec $m = n + 1$).`,
+        R`<b>Différence.</b> $S_N - \frac12S_N = \sum_{n=1}^N\frac{n - (n - 1)}{2^n} - \frac{N}{2^{N+1}} = \sum_{n=1}^N\frac1{2^n} - \frac{N}{2^{N+1}}$ (le terme $n = 0$ de $S_N$ est nul ; le dernier terme $m = N + 1$ reste seul).`,
+        R`<b>Passage à la limite.</b> $\frac{N}{2^{N+1}} \to 0$ (croissances comparées) et $\sum_{n \ge 1}\frac1{2^n} = \frac{1/2}{1 - 1/2} = 1$. Donc $\frac12S = 1$ et $S = 2$.`
+      ],
+      retenir: R`<p>$\sum nq^{n}$ : multiplier par $q$ et soustraire, ou dériver $\sum q^n = \frac1{1-q}$ : $\sum_{n \ge 1}nq^{n-1} = \frac1{(1-q)^2}$.</p>`
+    }
+  };
   L2.chapter('analyse3', 'series', {
     intro: R`<p>Une série, c'est une « somme infinie » $u_0 + u_1 + u_2 + \cdots$, définie comme limite des sommes partielles. Ce chapitre donne les outils pour décider si une série converge (sa <em>nature</em>) et, parfois, calculer sa somme. Les comparaisons asymptotiques ($\sim$, $O$, $o$) du chapitre 1 sont constamment utilisées.</p>`,
-    cours, fiche, exercices, methodes, generateurs, plan, reperes
+    cours, fiche, exercices, methodes, generateurs, plan, reperes, details
   });
 })();

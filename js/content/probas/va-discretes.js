@@ -66,6 +66,20 @@
         const py = ys.map(y => sumF(vals.map((x, i) => (x * x === y ? p[i] : F(0)))));
         const wa = k => (k === 1 ? 'a' : k + 'a');
         return {
+          detail: {
+            but: R`<p>Trouver $a$, puis calculer l'espérance, la loi de $X^2$, la variance et une valeur de la fonction de répartition.</p>`,
+            methode: R`<p>Somme des probabilités égale à 1 ; espérance = moyenne pondérée ; $\Esp(X^2)$ par <strong>transfert</strong> ; variance par <strong>König-Huygens</strong>.</p>`,
+            etapes: [
+              R`<b>Trouver $a$.</b> Les probabilités sont positives donc $a \ge 0$, et leur somme vaut 1 : $(${w.join(' + ')})a = ${S}a = 1$, d'où $a = ${F(1, S).tex()}$.`,
+              R`<b>Loi.</b> ${vals.map((x, i) => R`$\Proba(X = ${x}) = ${w[i] === 1 ? '' : w[i]}a = ${p[i].tex()}$`).join(' ; ')}.`,
+              R`<b>Espérance.</b> On multiplie chaque valeur par sa probabilité : ${vals.map((x, i) => R`$${prodTex(x, p[i].tex())} = ${p[i].mul(x).tex()}$`).join(', ')}. En sommant : $\Esp(X) = ${E.tex()}$.`,
+              R`<b>Loi de $Y = X^2$.</b> On regroupe les valeurs de même carré : ${ys.map((y, j) => R`$\{Y = ${y}\} = ${vals.filter(x => x * x === y).map(x => R`\{X = ${x}\}`).join(R` \cup `)}$, $\Proba(Y = ${y}) = ${py[j].tex()}$`).join(' ; ')}.`,
+              R`<b>$\Esp(X^2)$ par transfert.</b> $\sum x_i^2\,\Proba(X = x_i) = ${vals.map((x, i) => R`${x * x} \times ${p[i].tex()}`).join(' + ')} = ${E2.tex()}$ ; c'est aussi $\Esp(Y)$.`,
+              R`<b>Variance.</b> $\Var(X) = \Esp(X^2) - \Esp(X)^2 = ${E2.tex()} - ${E.mul(E).tex()} = ${V.tex()}$ (positive : cohérent).`,
+              R`<b>Fonction de répartition en $${t}$.</b> Les valeurs $\le ${t}$ sont $${vals[0]}$ et $${vals[1]}$ : $F_X(${t}) = ${p[0].tex()} + ${p[1].tex()} = ${Ft.tex()}$, et $\Proba(X \gt ${t}) = 1 - F_X(${t}) = ${F(1).sub(Ft).tex()}$.`
+            ],
+            retenir: R`<p>Transfert : $\Esp(f(X)) = \sum f(x_i)\Proba(X = x_i)$, sans calculer la loi de $f(X)$.</p>`
+          },
           enonce: R`<p>Une variable aléatoire $X$ a pour loi :</p>${lawTable('X', vals, w.map(wa))}<p>où $a$ est un réel.</p>
             <ol><li>Déterminer $a$.</li><li>Calculer $\Esp(X)$.</li><li>Déterminer la loi de $Y = X^2$ et calculer $\Esp(Y)$ de deux façons.</li><li>En déduire $\Var(X)$.</li><li>Calculer $F_X(${t}) = \Proba(X \le ${t})$ et $\Proba(X \gt ${t})$.</li></ol>`,
           indication: R`<p>La somme des probabilités vaut 1. Pour $\Esp(X^2)$, utiliser le théorème de transfert : $\Esp(X^2) = \sum x_i^2\,\Proba(X = x_i)$.</p>`,
@@ -95,6 +109,18 @@
         const pk = bq(binom(n, k) * bpow(a, k) * bpow(b, n - k), den);
         const ge1 = bq(den - bpow(b, n), den), le1 = bq(bpow(b, n) + BigInt(n * a) * bpow(b, n - 1), den);
         return {
+          detail: {
+            but: R`<p>Reconnaître la loi de $X$, puis calculer trois probabilités, l'espérance et la variance.</p>`,
+            methode: R`<p>Schéma de Bernoulli : épreuves <strong>indépendantes</strong> et <strong>identiques</strong>, $X$ <strong>compte les succès</strong> → $\mathcal B(n, p)$. « Au moins 1 » → contraire.</p>`,
+            etapes: [
+              R`<b>Loi.</b> L'épreuve élémentaire a deux issues : succès de probabilité $p = ${pt}$, échec de probabilité $q = ${qt}$. Elle est répétée $n = ${n}$ fois de façon indépendante et $X$ compte les succès : $X \sim \mathcal B(${n}, ${pt})$, $X(\Omega) = \{0, \dots, ${n}\}$.`,
+              R`<b>Espérance, variance.</b> $\Esp(X) = np = ${n} \times ${pt} = ${p.mul(n).tex()}$ ; $\Var(X) = npq = ${n} \times ${pt} \times ${qt} = ${p.mul(q).mul(n).tex()}$.`,
+              R`<b>$\Proba(X = ${k})$.</b> On choisit les ${k} épreuves réussies ($\binom{${n}}{${k}} = ${big(binom(n, k))}$ façons) ; chaque configuration a la probabilité $p^{${k}}q^{${n - k}}$. Donc $\Proba(X = ${k}) = \dfrac{${big(binom(n, k))} \times ${a}^{${k}} \times ${b}^{${n - k}}}{${d}^{${n}}} = ${pk.tex} ${approx(pk.v)}$.`,
+              R`<b>$\Proba(X \ge 1)$.</b> Le contraire est $\{X = 0\}$ : ${n} échecs, de probabilité $q^{${n}} = \dfrac{${b}^{${n}}}{${d}^{${n}}}$. Donc $\Proba(X \ge 1) = 1 - q^{${n}} = ${ge1.tex} ${approx(ge1.v)}$.`,
+              R`<b>$\Proba(X \le 1)$.</b> $\Proba(X = 0) + \Proba(X = 1) = q^{${n}} + ${n}\,p\,q^{${n - 1}}$ (pour $X = 1$ : ${n} choix de l'épreuve réussie) $= ${le1.tex} ${approx(le1.v)}$.`
+            ],
+            retenir: R`<p>$\Proba(X = k) = \binom nk p^kq^{n-k}$ : « choisir les $k$ succès » × « probabilité d'une configuration ».</p>`
+          },
           enonce: R`<p>${txt}</p><ol><li>Quelle est la loi de $X$ ? Donner $\Esp(X)$ et $\Var(X)$.</li><li>Calculer $\Proba(X = ${k})$.</li><li>Calculer $\Proba(X \ge 1)$.</li><li>Calculer $\Proba(X \le 1)$.</li></ol>`,
           indication: R`<p>Repérer une épreuve de Bernoulli (succès / échec) répétée $${n}$ fois de façon indépendante.</p>`,
           correction: R`<ol><li>On répète $${n}$ fois, de façon indépendante, une épreuve de Bernoulli dont le succès a pour probabilité $p = ${pt}$, et $X$ compte les succès : $X \sim \mathcal B(${n}, ${pt})$. Donc $\Esp(X) = np = ${p.mul(n).tex()}$ et $\Var(X) = np(1-p) = ${p.mul(q).mul(n).tex()}$.</li>
@@ -118,6 +144,19 @@
         const k = r.int(2, 6), m = r.int(2, 5), s = r.int(1, 4);
         const pk = bq(bpow(b, k - 1) * BigInt(a), bpow(d, k)), gm = bq(bpow(b, m), bpow(d, m)), gs = bq(bpow(b, s), bpow(d, s));
         return {
+          detail: {
+            but: R`<p>Identifier une loi géométrique et utiliser $\Proba(X \gt n) = q^n$, y compris dans un conditionnement.</p>`,
+            methode: R`<p>$X$ est un <strong>rang de premier succès</strong> dans des épreuves indépendantes → $\mathcal G(p)$. « $X \gt n$ » = « $n$ échecs d'affilée ».</p>`,
+            etapes: [
+              R`<b>Loi.</b> Succès à chaque épreuve : $p = ${pt}$ ; échec : $q = ${qt}$. $\{X = k\}$ = « $k - 1$ échecs puis un succès », de probabilité $q^{k-1}p$ par indépendance : $X \sim \mathcal G(${pt})$, $X(\Omega) = \N^*$.`,
+              R`<b>Espérance, variance.</b> $\Esp(X) = \frac1p = ${F(d, a).tex()}$ ; $\Var(X) = \frac{q}{p^2} = ${qt} \times ${F(d * d, a * a).tex()} = ${F(b * d, a * a).tex()}$.`,
+              R`<b>$\Proba(X = ${k})$.</b> ${k - 1} échec${k > 2 ? 's' : ''} puis un succès : $\left(${qt}\right)^{${k - 1}} \times ${pt} = ${pk.tex} ${approx(pk.v)}$.`,
+              R`<b>$\Proba(X \gt ${m})$.</b> Avoir besoin de plus de ${m} épreuves, c'est échouer aux ${m} premières : $q^{${m}} = ${gm.tex}$.`,
+              R`<b>Conditionnement.</b> $\{X \gt ${m + s}\} \subset \{X \gt ${m}\}$, donc l'intersection est $\{X \gt ${m + s}\}$ et $\Proba(X \gt ${m + s} \mid X \gt ${m}) = \dfrac{q^{${m + s}}}{q^{${m}}} = q^{${s}} = ${gs.tex}$.`,
+              R`<b>Interprétation.</b> C'est exactement $\Proba(X \gt ${s})$ : après ${m} échecs, tout recommence à zéro (<strong>absence de mémoire</strong>).`
+            ],
+            retenir: R`<p>$\mathcal G(p)$ : $\Proba(X \gt n) = q^n$, $\Esp = \frac1p$, $\Var = \frac{q}{p^2}$, et $\Proba(X \gt n + m \mid X \gt n) = \Proba(X \gt m)$.</p>`
+          },
           enonce: R`<p>${txt}</p><ol><li>Justifier que $X$ suit une loi géométrique ; donner $\Esp(X)$ et $\Var(X)$.</li><li>Calculer $\Proba(X = ${k})$.</li><li>Calculer $\Proba(X \gt ${m})$.</li><li>Calculer $\Proba(X \gt ${m + s} \mid X \gt ${m})$ et comparer à $\Proba(X \gt ${s})$.</li></ol>`,
           indication: R`<p>$\{X \gt n\}$ signifie : les $n$ premières épreuves sont des échecs.</p>`,
           correction: R`<ol><li>Notons $S_i$ : « succès à la $i$-ème épreuve » ; les $S_i$ sont mutuellement indépendants de probabilité $p = ${pt}$. Pour $k \ge 1$, $\{X = k\} = \overline{S_1} \cap \dots \cap \overline{S_{k-1}} \cap S_k$, donc $\Proba(X = k) = (1-p)^{k-1}p$ : $X \sim \mathcal G(${pt})$. Ainsi $\Esp(X) = \frac1p = ${F(d, a).tex()}$ et $\Var(X) = \frac{1-p}{p^2} = ${F(b * d, a * a).tex()}$.</li>
@@ -141,6 +180,19 @@
         const tot = binom(N, n), pk = bq(binom(N1, k) * binom(N2, n - k), tot), p0 = bq(binom(N2, n), tot), ge1 = bq(tot - binom(N2, n), tot);
         const p = F(N1, N), E = p.mul(n), V = F(n * N1 * N2 * (N - n), N * N * (N - 1)), Vb = F(n * N1 * N2, N * N);
         return {
+          detail: {
+            but: R`<p>Loi du nombre d'objets « marqués » dans un tirage sans remise, quelques probabilités, espérance et variance.</p>`,
+            methode: R`<p>Tirage <strong>simultané ou sans remise</strong> → univers des parties, équiprobabilité → loi <strong>hypergéométrique</strong>.</p>`,
+            etapes: [
+              R`<b>Univers.</b> Un tirage est une partie de ${n} objets parmi ${N} : $\binom{${N}}{${n}} = ${big(tot)}$ issues équiprobables.`,
+              R`<b>Loi.</b> Il y a ${N1} objets marqués et ${N2} autres. Obtenir $j$ marqués, c'est choisir $j$ marqués parmi ${N1} <em>et</em> $${n} - j$ autres parmi ${N2} : $\Proba(X = j) = \dfrac{\binom{${N1}}{j}\binom{${N2}}{${n} - j}}{\binom{${N}}{${n}}}$ pour $j \in \{0, \dots, ${Math.min(n, N1)}\}$. C'est $\mathcal H(${N}, ${n}, ${p.tex()})$.`,
+              R`<b>$\Proba(X = ${k})$.</b> $\binom{${N1}}{${k}} = ${big(binom(N1, k))}$ et $\binom{${N2}}{${n - k}} = ${big(binom(N2, n - k))}$, donc $\Proba(X = ${k}) = \dfrac{${big(binom(N1, k) * binom(N2, n - k))}}{${big(tot)}} = ${pk.tex} ${approx(pk.v)}$.`,
+              R`<b>$\Proba(X \ge 1)$.</b> Contraire : aucun objet marqué, les ${n} objets sont pris parmi les ${N2} autres, $\binom{${N2}}{${n}} = ${big(binom(N2, n))}$ façons. $\Proba(X \ge 1) = 1 - \dfrac{${big(binom(N2, n))}}{${big(tot)}} = ${ge1.tex}$.`,
+              R`<b>Espérance.</b> $\Esp(X) = np$ avec $p = \frac{${N1}}{${N}}$ : $${n} \times ${p.tex()} = ${E.tex()}$.`,
+              R`<b>Variance.</b> $\Var(X) = np(1-p)\dfrac{N - n}{N - 1} = ${Vb.tex()} \times \dfrac{${N - n}}{${N - 1}} = ${V.tex()}$. Avec remise (loi binomiale), on aurait $${Vb.tex()}$, plus grand.`
+            ],
+            retenir: R`<p>Sans remise : $\mathcal H(N, n, p)$ ; avec remise : $\mathcal B(n, p)$. Même espérance $np$, variance plus faible sans remise.</p>`
+          },
           enonce: R`<p>${txt}</p><ol><li>Donner la loi de $X$.</li><li>Calculer $\Proba(X = ${k})$.</li><li>Calculer $\Proba(X \ge 1)$.</li><li>Donner $\Esp(X)$ et $\Var(X)$ ; comparer avec le cas de tirages avec remise.</li></ol>`,
           indication: R`<p>L'univers est l'ensemble des parties à $${n}$ éléments parmi $${N}$, muni de l'équiprobabilité.</p>`,
           correction: R`<ol><li>Tirage simultané de $${n}$ objets parmi $${N}$, dont $${N1}$ « marqués » : $X \sim \mathcal H(${N}, ${n}, ${p.tex()})$. $X(\Omega) = \{0, \dots, ${Math.min(n, N1)}\}$ et $\Proba(X = j) = \dfrac{\binom{${N1}}{j}\binom{${N2}}{${n} - j}}{\binom{${N}}{${n}}}$.</li>
@@ -164,6 +216,19 @@
         let fk = 1; for (let i = 2; i <= k; i++) fk *= i;
         const e = Math.exp(-l), pk = e * Math.pow(l, k) / fk, le2 = e * (1 + l + l * l / 2), ge1 = 1 - e, cond = (1 - e - l * e) / (1 - e);
         return {
+          detail: {
+            but: R`<p>Calculs de probabilités pour une loi de Poisson de paramètre $${lt}$.</p>`,
+            methode: R`<p>$\Proba(X = k) = e^{-\lambda}\dfrac{\lambda^k}{k!}$ ; « au plus » : somme finie de termes ; « sachant » : quotient de deux probabilités.</p>`,
+            etapes: [
+              R`<b>Paramètre.</b> $X \sim \mathcal P(${lt})$, donc $\Esp(X) = \Var(X) = ${lt}$ : le paramètre est le nombre moyen.`,
+              R`<b>$\Proba(X = 0)$.</b> $e^{-${lt}}\dfrac{${lt}^0}{0!} = e^{-${lt}} ${approx(e)}$.`,
+              R`<b>$\Proba(X = ${k})$.</b> $${lamPow(l, k)} ${approx(Math.pow(l, k))}$ et $${k}! = ${fk}$, donc $\Proba(X = ${k}) = e^{-${lt}}\dfrac{${lamPow(l, k)}}{${fk}} ${approx(pk)}$.`,
+              R`<b>$\Proba(X \le 2)$.</b> $\Proba(X = 0) + \Proba(X = 1) + \Proba(X = 2) = e^{-${lt}}\left(1 + ${lt} + \dfrac{${lamPow(l, 2)}}{2}\right) ${approx(le2)}$.`,
+              R`<b>Les deux probabilités du quotient.</b> $\Proba(X \ge 1) = 1 - \Proba(X = 0) = 1 - e^{-${lt}} ${approx(ge1)}$ et $\Proba(X \ge 2) = 1 - \Proba(X = 0) - \Proba(X = 1) = 1 - e^{-${lt}} - ${lt}e^{-${lt}} ${approx(1 - e - l * e)}$.`,
+              R`<b>Conditionnement.</b> $\{X \ge 2\} \subset \{X \ge 1\}$, donc $\Proba(X \ge 2 \mid X \ge 1) = \dfrac{\Proba(X \ge 2)}{\Proba(X \ge 1)} ${approx(cond)}$.`
+            ],
+            retenir: R`<p>Loi de Poisson : $\Esp = \Var = \lambda$ ; « au moins » → complémentaire ; « $A$ sachant $B$ » avec $A \subset B$ : $\frac{\Proba(A)}{\Proba(B)}$.</p>`
+          },
           enonce: R`<p>${ctx}</p><ol><li>Rappeler $\Esp(X)$ et $\Var(X)$.</li><li>Calculer $\Proba(X = 0)$ et $\Proba(X = ${k})$.</li><li>Calculer $\Proba(X \le 2)$.</li><li>Calculer $\Proba(X \ge 2 \mid X \ge 1)$.</li></ol>`,
           correction: R`<ol><li>$X \sim \mathcal P(${lt})$ : $\Esp(X) = \Var(X) = ${lt}$.</li>
             <li>$\Proba(X = k) = e^{-\lambda}\dfrac{\lambda^k}{k!}$ : $\Proba(X = 0) = e^{-${lt}} ${approx(e)}$ et $\Proba(X = ${k}) = e^{-${lt}}\dfrac{${lamPow(l, k)}}{${k}!} ${approx(pk)}$.</li>
@@ -178,6 +243,12 @@
       make(r) {
         const items = r.sample(RECO, 4).map(f => f(r));
         return {
+          detail: {
+            but: R`<p>Reconnaître une loi usuelle à partir d'une situation concrète, puis donner espérance et variance.</p>`,
+            methode: R`<p>Questions à se poser : que compte $X$ ? un nombre de <strong>succès</strong> (nombre d'épreuves fixé) ou un <strong>rang</strong> (on attend un succès) ? tirages <strong>avec</strong> ou <strong>sans</strong> remise ? issues équiprobables ? événements rares de moyenne connue ?</p>`,
+            etapes: items.map(it => R`${it.s}<br><b>Analyse :</b> ${it.w}. <b>Loi :</b> ${it.loi}. <b>Formules du cours :</b> $\Esp(X) = ${it.E.tex()}$ et $\Var(X) = ${it.V.tex()}$.`),
+            retenir: R`<p>Nombre de succès : binomiale (avec remise) ou hypergéométrique (sans remise) ; rang du 1<sup>er</sup> succès : géométrique ; du $r$-ième : Pascal ; événements rares : Poisson ; issues équiprobables : uniforme.</p>`
+          },
           enonce: R`<p>Pour chacune des situations suivantes, reconnaître la loi de $X$ (avec ses paramètres) et donner $\Esp(X)$ et $\Var(X)$.</p><ol>${items.map(it => '<li>' + it.s + '</li>').join('')}</ol>`,
           indication: R`<p>Se demander : que compte $X$ ? un nombre de succès (sur un nombre fixé d'épreuves) ou un rang (on attend un succès) ? avec ou sans remise ?</p>`,
           correction: R`<ol>${items.map(it => R`<li>${it.w[0].toUpperCase() + it.w.slice(1)} : ${it.loi}. $\Esp(X) = ${it.E.tex()}$, $\Var(X) = ${it.V.tex()}$.</li>`).join('')}</ol>`
@@ -220,6 +291,21 @@
           indep = R`On vérifie que <strong>chaque case</strong> est le produit des deux marges (par exemple $\frac{${K[0][0]}}{${D}} = ${pX[0].tex()} \times ${pY[0].tex()}$) : <strong>$X$ et $Y$ sont indépendantes</strong>.`;
         }
         return {
+          detail: {
+            but: R`<p>Exploiter la loi conjointe : marginales, espérances, indépendance, loi conditionnelle, covariance.</p>`,
+            methode: R`<p>Marges = sommes des lignes et des colonnes (probabilités totales) ; indépendance = chaque case égale au produit de ses marges ; loi conditionnelle = colonne divisée par son total ; $\Esp(XY)$ par transfert.</p>`,
+            etapes: [
+              R`<b>Contrôle.</b> La somme de toutes les cases vaut $\frac{${D}}{${D}} = 1$.`,
+              R`<b>Loi de $X$ (somme des lignes).</b> ${xs.map((x, i) => R`$\Proba(X = ${x}) = \frac{${K[i].join(' + ')}}{${D}} = ${pX[i].tex()}$`).join(' ; ')}.`,
+              R`<b>Loi de $Y$ (somme des colonnes).</b> ${ys.map((y, j) => R`$\Proba(Y = ${y}) = \frac{${K.map(rw => rw[j]).join(' + ')}}{${D}} = ${pY[j].tex()}$`).join(' ; ')}.`,
+              R`<b>Espérances.</b> $\Esp(X) = ${xs.map((x, i) => prodTex(x, pX[i].tex())).join(' + ')} = ${EX.tex()}$ ; $\Esp(Y) = ${ys.map((y, j) => prodTex(y, pY[j].tex())).join(' + ')} = ${EY.tex()}$.`,
+              R`<b>Indépendance.</b> ${indep}`,
+              R`<b>Loi conditionnelle.</b> On garde la colonne $Y = ${y0}$, de total $\frac{${col[0]}}{${D}}$, et on divise chaque case par ce total : ${xs.map((x, i) => R`$\Proba(X = ${x} \mid Y = ${y0}) = \frac{${K[i][0]}}{${col[0]}} = ${F(K[i][0], col[0]).tex()}$`).join(' ; ')}.`,
+              R`<b>$\Esp(XY)$ par transfert.</b> On somme $xy\,\Proba(X = x, Y = y)$ sur les cases où $xy \neq 0$ : ${(() => { const t = []; xs.forEach((x, i) => ys.forEach((y, j) => { if (x * y) t.push((x * y < 0 ? '(' + x * y + ')' : x * y) + R` \times \frac{${K[i][j]}}{${D}}`); })); return t.length ? '$' + t.join(' + ') + ' = ' + EXY.tex() + '$' : '$0$'; })()}.`,
+              R`<b>Covariance.</b> $\Cov(X, Y) = \Esp(XY) - \Esp(X)\Esp(Y) = ${EXY.tex()} - ${EX.tex()} \times ${EY.tex()} = ${cov.tex()}$.`
+            ],
+            retenir: R`<p>Non-indépendance : un contre-exemple suffit. Indépendance : vérifier <strong>toutes</strong> les cases. Covariance nulle n'implique pas l'indépendance.</p>`
+          },
           enonce: R`<p>La loi conjointe d'un couple $(X, Y)$ est donnée par le tableau (en ligne les valeurs de $X$, en colonne celles de $Y$) :</p>${tab}
             <ol><li>Déterminer les lois marginales de $X$ et de $Y$.</li><li>Calculer $\Esp(X)$ et $\Esp(Y)$.</li><li>$X$ et $Y$ sont-elles indépendantes ?</li><li>Déterminer la loi conditionnelle de $X$ sachant $\{Y = ${y0}\}$.</li><li>Calculer $\Cov(X, Y)$.</li></ol>`,
           indication: R`<p>Lois marginales : sommer les lignes et les colonnes. Indépendance : chaque case doit être le produit de sa marge-ligne et de sa marge-colonne.</p>`,
@@ -241,6 +327,20 @@
         const terms = []; for (let k = 1; k <= m; k++) terms.push(q.pow(k));
         const P0 = um.mul(sumF(terms)), post1 = um.mul(q).div(P0), postm = um.mul(q.pow(m)).div(P0), Pm = um.mul(p.pow(m));
         return {
+          detail: {
+            but: R`<p>Expérience en deux temps : loi conditionnelle, probabilités totales, Bayes, test d'indépendance.</p>`,
+            methode: R`<p>Système complet $(\{X = k\})_{1 \le k \le ${m}}$ ; sachant $X = k$, on reconnaît une loi binomiale.</p>`,
+            etapes: [
+              R`<b>Loi de $X$.</b> $\Proba(X = k) = \frac1{${m}}$ pour $k = 1, \dots, ${m}$.`,
+              R`<b>Loi conditionnelle.</b> Sachant $X = k$ : $k$ lancers indépendants, succès (${c.s}) de probabilité $${pt}$ → $\mathcal B(k, ${pt})$. En particulier $\Proba(Y = 0 \mid X = k) = \left(${qt}\right)^k$ (que des échecs).`,
+              R`<b>Probabilités totales.</b> $\Proba(Y = 0) = \sum_{k=1}^{${m}}\frac1{${m}}\left(${qt}\right)^k = \frac1{${m}}\left(${terms.map(t => t.tex()).join(' + ')}\right) = ${P0.tex()}$.`,
+              R`<b>Bayes pour $X = 1$.</b> $\Proba(X = 1 \mid Y = 0) = \dfrac{\Proba(X = 1)\Proba(Y = 0 \mid X = 1)}{\Proba(Y = 0)} = \dfrac{${um.mul(q).tex()}}{${P0.tex()}} = ${post1.tex()}$.`,
+              R`<b>Bayes pour $X = ${m}$.</b> Numérateur $\frac1{${m}}\left(${qt}\right)^{${m}} = ${um.mul(q.pow(m)).tex()}$, d'où $\Proba(X = ${m} \mid Y = 0) = ${postm.tex()}$ : plus petit, car n'obtenir aucun succès en ${m} lancers est moins probable qu'en un seul.`,
+              R`<b>$\Proba(Y = ${m})$.</b> ${m} succès exigent ${m} lancers : seul $X = ${m}$ convient, $\Proba(Y = ${m}) = \frac1{${m}}\left(${pt}\right)^{${m}} = ${Pm.tex()}$.`,
+              R`<b>Indépendance ?</b> $\Proba(X = 1, Y = ${m}) = 0$ (un seul lancer ne peut pas donner ${m} succès) alors que $\Proba(X = 1)\Proba(Y = ${m}) \gt 0$ : non indépendantes.`
+            ],
+            retenir: R`<p>Deux temps : loi de $X$ → loi de $Y$ sachant $X$ → probabilités totales → Bayes.</p>`
+          },
           enonce: R`<p>On choisit un entier $X$ au hasard (uniformément) entre $1$ et $${m}$, puis on lance $X$ fois ${c.obj}. On note $Y$ le nombre de ${c.s} obtenus.</p>
             <ol><li>Pour $k \in \{1, \dots, ${m}\}$, quelle est la loi de $Y$ sachant $\{X = k\}$ ?</li><li>Calculer $\Proba(Y = 0)$.</li><li>On n'a obtenu aucun ${c.s}. Quelle est la probabilité que $X = 1$ ? que $X = ${m}$ ?</li><li>Calculer $\Proba(Y = ${m})$. Les variables $X$ et $Y$ sont-elles indépendantes ?</li></ol>`,
           indication: R`<p>$(\{X = k\})_{1 \le k \le ${m}}$ est un système complet : probabilités totales, puis Bayes.</p>`,
@@ -269,6 +369,18 @@
         const eq = sumF(ys.map(k => pX[k].mul(pY[k])));
         const s1 = 2;
         return {
+          detail: {
+            but: R`<p>Loi, espérance et variance de $S = X + Y$ pour des variables indépendantes, et $\Proba(X = Y)$.</p>`,
+            methode: R`<p>$\{S = s\} = \bigsqcup_k \{X = k\} \cap \{Y = s - k\}$, puis indépendance (produit des probabilités). Contrôles : $\Esp(S) = \Esp X + \Esp Y$ et $\Var(S) = \Var X + \Var Y$.</p>`,
+            etapes: [
+              R`<b>Valeurs.</b> $X \in \{0, 1, 2\}$ et $Y \in \{${ys.join(', ')}\}$, donc $S(\Omega) = \{0, \dots, ${smax}\}$.`,
+              ...ss.map(s => R`<b>$S = ${s}$.</b> Couples possibles $(X, Y)$ : ${terms(s).map(([i, j]) => R`$(${i}, ${j})$`).join(', ')} ; $\Proba(S = ${s}) = ${terms(s).map(([i, j]) => R`${pX[i].tex()} \times ${pY[j].tex()}`).join(' + ')} = ${pS[s].tex()}$.`),
+              R`<b>Espérance.</b> Avec la loi de $S$ : $\Esp(S) = ${ES.tex()}$ ; par linéarité : $\Esp(X) + \Esp(Y) = ${EX.tex()} + ${EY.tex()}$, même résultat.`,
+              R`<b>Variances.</b> $\Esp(X^2) = ${VX.add(EX.mul(EX)).tex()}$ donc $\Var(X) = ${VX.tex()}$ ; de même $\Var(Y) = ${VY.tex()}$ ; et $\Var(S) = ${VS.tex()} = \Var(X) + \Var(Y)$ grâce à l'indépendance.`,
+              R`<b>$\Proba(X = Y)$.</b> $\{X = Y\} = \bigsqcup_k \{X = k\} \cap \{Y = k\}$ : $${ys.map(k => R`${pX[k].tex()} \times ${pY[k].tex()}`).join(' + ')} = ${eq.tex()}$.`
+            ],
+            retenir: R`<p>Convolution pour la loi d'une somme ; l'espérance s'ajoute toujours, la variance seulement pour des variables indépendantes.</p>`
+          },
           enonce: R`<p>$X$ et $Y$ sont deux variables aléatoires <strong>indépendantes</strong> de lois :</p>${lawTable('X', xs, pX.map(f => f.tex()))}${lawTable('Y', ys, pY.map(f => f.tex()))}
             <ol><li>Déterminer la loi de $S = X + Y$.</li><li>Calculer $\Esp(S)$ de deux façons.</li><li>Calculer $\Var(X)$, $\Var(Y)$ et $\Var(S)$ ; vérifier que $\Var(S) = \Var(X) + \Var(Y)$.</li><li>Calculer $\Proba(X = Y)$.</li></ol>`,
           indication: R`<p>$\{S = s\} = \bigsqcup_k \{X = k\} \cap \{Y = s - k\}$, et l'indépendance donne le produit des probabilités.</p>`,
@@ -871,8 +983,251 @@
     { etape: 5, si: R`Une variance négative`, alors: R`Erreur de calcul : revoir $\Esp(X^2)$ (transfert) et $\Esp(X)^2$.` }
   ];
 
+
+  /* ------------------------------------------------------------------ */
+  /* Corrections détaillées (bouton « Correction détaillée »)            */
+  /* ------------------------------------------------------------------ */
+  const details = {
+    'loi-finie': {
+      but: R`<p>Trouver la constante $a$, puis les caractéristiques de $X$ ($\Esp$, $\Var$, $F_X$) et la loi de $Y = X^2$.</p>`,
+      methode: R`<p>Une loi discrète, ce sont des <strong>valeurs</strong> et des <strong>probabilités positives de somme 1</strong>. L'espérance est la moyenne pondérée des valeurs ; $\Esp(X^2)$ se calcule par le <strong>théorème de transfert</strong> ; la variance par <strong>König-Huygens</strong>.</p>`,
+      etapes: [
+        R`<b>Trouver $a$.</b> Les probabilités doivent être positives (donc $a \ge 0$) et de somme 1 : $0{,}1 + a + 0{,}3 + 2a = 1 \iff 0{,}4 + 3a = 1 \iff a = 0{,}2$. Loi : $\Proba(X = -1) = 0{,}1$, $\Proba(X = 0) = 0{,}2$, $\Proba(X = 1) = 0{,}3$, $\Proba(X = 2) = 0{,}4$ ; on vérifie que la somme vaut 1.`,
+        R`<b>Espérance.</b> $\Esp(X) = \sum x_i\Proba(X = x_i) = (-1)(0{,}1) + 0(0{,}2) + 1(0{,}3) + 2(0{,}4) = -0{,}1 + 0 + 0{,}3 + 0{,}8 = 1$.`,
+        R`<b>$\Esp(X^2)$ par transfert</b> (sans chercher la loi de $X^2$) : $\Esp(X^2) = \sum x_i^2\Proba(X = x_i) = 1(0{,}1) + 0(0{,}2) + 1(0{,}3) + 4(0{,}4) = 0{,}1 + 0{,}3 + 1{,}6 = 2$.`,
+        R`<b>Variance.</b> $\Var(X) = \Esp(X^2) - \Esp(X)^2 = 2 - 1^2 = 1$ (positive : cohérent), donc $\sigma(X) = 1$.`,
+        R`<b>Fonction de répartition.</b> $F_X(x) = \Proba(X \le x)$ est la somme des probabilités des valeurs $\le x$ : $0$ si $x \lt -1$ ; $0{,}1$ si $-1 \le x \lt 0$ ; $0{,}1 + 0{,}2 = 0{,}3$ si $0 \le x \lt 1$ ; $0{,}6$ si $1 \le x \lt 2$ ; $1$ si $x \ge 2$. C'est une fonction en escalier, continue à droite, dont les sauts (en $-1, 0, 1, 2$) ont pour hauteur les probabilités.`,
+        R`<b>Loi de $Y = X^2$.</b> $Y(\Omega) = \{(-1)^2, 0^2, 1^2, 2^2\} = \{0, 1, 4\}$. On regroupe les valeurs de $X$ de même carré : $\{Y = 1\} = \{X = -1\} \cup \{X = 1\}$ (incompatibles), donc $\Proba(Y = 1) = 0{,}1 + 0{,}3 = 0{,}4$ ; $\Proba(Y = 0) = 0{,}2$ ; $\Proba(Y = 4) = 0{,}4$. Contrôle : $\Esp(Y) = 0 + 0{,}4 + 1{,}6 = 2 = \Esp(X^2)$.`
+      ],
+      retenir: R`<p>Pour <strong>$\Esp(f(X))$</strong> : transfert, pas besoin de la loi de $f(X)$. Pour la <strong>loi de $f(X)$</strong> : regrouper les valeurs de $X$ qui ont la même image.</p>`
+    },
+    'max-des': {
+      but: R`<p>Loi et espérance du maximum $M$ et du minimum $m$ de deux dés.</p>`,
+      methode: R`<p>Pour un <strong>maximum</strong>, l'événement $\{M \le k\}$ est simple (« tous les dés sont $\le k$ ») ; on en déduit $\Proba(M = k)$ par différence. Pour un <strong>minimum</strong>, on utilise $\{m \ge k\}$. Enfin la <strong>linéarité</strong> relie $M$, $m$ et la somme des dés.</p>`,
+      etapes: [
+        R`<b>Modèle.</b> $\Omega = \{1, \dots, 6\}^2$, 36 couples équiprobables ; $M(\Omega) = m(\Omega) = \{1, \dots, 6\}$.`,
+        R`<b>$\Proba(M \le k)$.</b> $\{M \le k\}$ = « les deux dés donnent au plus $k$ » : $k$ choix pour chaque dé, donc $k^2$ couples et $\Proba(M \le k) = \frac{k^2}{36}$ (pour $k = 6$ on trouve bien 1).`,
+        R`<b>Loi de $M$.</b> $\{M \le k - 1\} \subset \{M \le k\}$ et $\{M = k\} = \{M \le k\} \setminus \{M \le k - 1\}$, donc $\Proba(M = k) = \frac{k^2 - (k-1)^2}{36} = \frac{2k - 1}{36}$. Valeurs : $\frac1{36}, \frac3{36}, \frac5{36}, \frac7{36}, \frac9{36}, \frac{11}{36}$ ; somme $\frac{36}{36} = 1$.`,
+        R`<b>$\Esp(M)$.</b> $\Esp(M) = \frac1{36}\sum_{k=1}^6 k(2k - 1) = \frac{2\sum k^2 - \sum k}{36} = \frac{2 \times 91 - 21}{36} = \frac{161}{36} \approx 4{,}47$ (avec $\sum_{k=1}^6 k^2 = 91$, $\sum_{k=1}^6 k = 21$). C'est plus que $3{,}5$ : normal, on garde le plus grand.`,
+        R`<b>Loi de $m$.</b> $\{m \ge k\}$ = « les deux dés donnent au moins $k$ » : $7 - k$ choix par dé, $\Proba(m \ge k) = \frac{(7-k)^2}{36}$. Puis $\Proba(m = k) = \Proba(m \ge k) - \Proba(m \ge k + 1) = \frac{(7-k)^2 - (6-k)^2}{36} = \frac{13 - 2k}{36}$ : $\frac{11}{36}, \frac9{36}, \dots, \frac1{36}$.`,
+        R`<b>$\Esp(m)$ sans calcul.</b> Le maximum plus le minimum des deux résultats, c'est leur somme : $M + m = X_1 + X_2$. Par linéarité, $\Esp(M) + \Esp(m) = 3{,}5 + 3{,}5 = 7$, donc $\Esp(m) = 7 - \frac{161}{36} = \frac{91}{36} \approx 2{,}53$.`
+      ],
+      retenir: R`<p>Maximum → passer par $\Proba(M \le k)$ ; minimum → par $\Proba(m \ge k)$ ; puis faire la <strong>différence</strong> de deux termes consécutifs.</p>`
+    },
+    'sans-esperance': {
+      but: R`<p>Vérifier qu'on a une loi, calculer une queue de distribution, et étudier l'existence de l'espérance.</p>`,
+      methode: R`<p>Décomposer $\frac1{k(k+1)}$ en éléments simples pour obtenir des sommes <strong>télescopiques</strong> ; pour l'espérance, étudier la convergence de $\sum k\,p_k$.</p>`,
+      etapes: [
+        R`<b>Positivité et décomposition.</b> $p_k \gt 0$ et $\frac1{k(k+1)} = \frac1k - \frac1{k+1}$ (en effet $\frac1k - \frac1{k+1} = \frac{(k+1) - k}{k(k+1)}$).`,
+        R`<b>Somme égale à 1.</b> $\sum_{k=1}^N p_k = \left(1 - \frac12\right) + \left(\frac12 - \frac13\right) + \dots + \left(\frac1N - \frac1{N+1}\right) = 1 - \frac1{N+1} \xrightarrow[N \to \infty]{} 1$. C'est donc une loi sur $\N^*$.`,
+        R`<b>$\Proba(X \ge n)$.</b> $\sum_{k=n}^N\left(\frac1k - \frac1{k+1}\right) = \frac1n - \frac1{N+1} \to \frac1n$, donc $\Proba(X \ge n) = \frac1n$.`,
+        R`<b>Espérance.</b> Il faudrait que $\sum k\,p_k$ converge (absolument ; ici les termes sont positifs). Or $k\,p_k = \frac1{k+1}$ et $\sum\frac1{k+1}$ est la série harmonique (Riemann avec $\alpha = 1$) : elle <strong>diverge</strong>. $X$ n'admet donc pas d'espérance.`
+      ],
+      retenir: R`<p>Quand $X(\Omega)$ est infini, l'espérance n'existe pas toujours : il faut <strong>vérifier la convergence</strong> de $\sum x_i\Proba(X = x_i)$.</p>`
+    },
+    inegalites: {
+      but: R`<p>Majorer des probabilités sans connaître la loi exacte, avec Markov puis Bienaymé-Tchebychev.</p>`,
+      methode: R`<p>Markov : $\Proba(X \ge a) \le \frac{\Esp(X)}{a}$ pour $X \ge 0$. Bienaymé-Tchebychev : $\Proba(|X - \Esp X| \ge \eps) \le \frac{\Var X}{\eps^2}$. Il faut donc d'abord $\Esp(X)$ et $\Var(X)$.</p>`,
+      etapes: [
+        R`<b>Loi de $X$.</b> 100 lancers indépendants, succès « pile » de probabilité $\frac12$ : $X \sim \mathcal B(100, \frac12)$, donc $\Esp(X) = np = 50$ et $\Var(X) = npq = 100 \times \frac12 \times \frac12 = 25$.`,
+        R`<b>Markov.</b> Hypothèses : $X \ge 0$ (c'est un nombre de piles) et $a = 75 \gt 0$. $\Proba(X \ge 75) \le \frac{50}{75} = \frac23$. La vraie valeur est minuscule (de l'ordre de $10^{-7}$) : Markov est très grossier.`,
+        R`<b>Bienaymé-Tchebychev</b> avec $\eps = 10$ : $\Proba(|X - 50| \ge 10) \le \frac{25}{10^2} = \frac14$.`,
+        R`<b>Passage au contraire.</b> $\{|X - 50| \lt 10\} = \{-10 \lt X - 50 \lt 10\} = \{40 \lt X \lt 60\}$, donc $\Proba(40 \lt X \lt 60) = 1 - \Proba(|X - 50| \ge 10) \ge 1 - \frac14 = \frac34$.`
+      ],
+      retenir: R`<p>Markov n'utilise que l'espérance (et $X \ge 0$), Bienaymé-Tchebychev la variance. Ce sont des majorations <strong>universelles</strong> mais souvent larges.</p>`
+    },
+    qcm: {
+      but: R`<p>Probabilité d'avoir au moins 5 bonnes réponses sur 10 en répondant au hasard, et nombre moyen de bonnes réponses.</p>`,
+      methode: R`<p>Reconnaître un <strong>schéma de Bernoulli</strong> : des épreuves indépendantes et identiques, et l'on compte les succès → loi binomiale.</p>`,
+      etapes: [
+        R`<b>Modélisation.</b> Chaque question est une épreuve de Bernoulli : succès = « bonne réponse », de probabilité $p = \frac14$ (une réponse juste sur 4, choisie au hasard). Les 10 réponses sont indépendantes et $X$ compte les succès : $X \sim \mathcal B(10, \frac14)$.`,
+        R`<b>Formule.</b> $\Proba(X = k) = \binom{10}{k}\left(\frac14\right)^k\left(\frac34\right)^{10-k} = \binom{10}{k}\frac{3^{10-k}}{4^{10}}$, avec $4^{10} = 1\,048\,576$.`,
+        R`<b>Les termes utiles.</b> « Reçu » $= \{X \ge 5\}$, réunion disjointe des $\{X = k\}$ pour $k = 5, \dots, 10$. Numérateurs : $k = 5$ : $252 \times 243 = 61\,236$ ; $k = 6$ : $210 \times 81 = 17\,010$ ; $k = 7$ : $120 \times 27 = 3\,240$ ; $k = 8$ : $45 \times 9 = 405$ ; $k = 9$ : $10 \times 3 = 30$ ; $k = 10$ : $1$.`,
+        R`<b>Somme.</b> $\Proba(X \ge 5) = \frac{81\,922}{1\,048\,576} \approx 0{,}078$ : moins de 8 % de chances d'être reçu.`,
+        R`<b>Moyenne.</b> $\Esp(X) = np = 2{,}5$ et $\Var(X) = npq = 10 \times \frac14 \times \frac34 = 1{,}875$, soit un écart-type $\approx 1{,}37$.`
+      ],
+      retenir: R`<p>« Nombre de succès en $n$ épreuves indépendantes de même probabilité » → $\mathcal B(n, p)$, puis $\Esp = np$, $\Var = npq$.</p>`
+    },
+    'moments-binomiale': {
+      but: R`<p>Retrouver $\Esp(X)$ et $\Var(X)$ pour $X \sim \mathcal B(n, p)$ à l'aide d'un polynôme.</p>`,
+      methode: R`<p>$f(x) = \sum_k\Proba(X = k)x^k$ (fonction génératrice). Dériver puis évaluer en $x = 1$ fait apparaître $\sum k\Proba(X = k)$, puis $\sum k(k-1)\Proba(X = k)$.</p>`,
+      etapes: [
+        R`<b>Forme close.</b> Par le binôme de Newton, $f(x) = \sum_k\binom nk(px)^kq^{n-k} = (px + q)^n$.`,
+        R`<b>Dérivée première.</b> $f'(x) = \sum_k k\binom nkp^kq^{n-k}x^{k-1}$, donc $f'(1) = \sum_k k\,\Proba(X = k) = \Esp(X)$. Et $f'(x) = np(px + q)^{n-1}$, donc $f'(1) = np(p + q)^{n-1} = np$.`,
+        R`<b>Dérivée seconde.</b> $f''(1) = \sum_k k(k-1)\Proba(X = k) = \Esp(X(X-1))$ (transfert), et $f''(x) = n(n-1)p^2(px + q)^{n-2}$, donc $\Esp(X(X-1)) = n(n-1)p^2$.`,
+        R`<b>Variance.</b> $\Esp(X^2) = \Esp(X(X-1)) + \Esp(X) = n(n-1)p^2 + np$, puis $\Var(X) = n(n-1)p^2 + np - n^2p^2 = np - np^2 = np(1-p) = npq$.`
+      ],
+      retenir: R`<p>Le <strong>moment factoriel</strong> $\Esp(X(X-1))$ est souvent plus simple à calculer que $\Esp(X^2)$ ; ensuite $\Esp(X^2) = \Esp(X(X-1)) + \Esp(X)$.</p>`
+    },
+    'premier-six': {
+      but: R`<p>Loi du rang du premier 6, une probabilité de « longue attente » et la probabilité que ce rang soit pair.</p>`,
+      methode: R`<p>Écrire $\{X = k\}$ comme intersection d'événements indépendants (« échecs puis succès ») → loi géométrique. Pour « $X$ pair », sommer une <strong>série géométrique</strong>.</p>`,
+      etapes: [
+        R`<b>Loi.</b> $S_i$ : « 6 au lancer $i$ », indépendants de probabilité $\frac16$. $\{X = k\} = \overline{S_1} \cap \dots \cap \overline{S_{k-1}} \cap S_k$, donc $\Proba(X = k) = \left(\frac56\right)^{k-1}\frac16$ : $X \sim \mathcal G(\frac16)$, $X(\Omega) = \N^*$.`,
+        R`<b>Espérance, variance.</b> $\Esp(X) = \frac1p = 6$ et $\Var(X) = \frac{q}{p^2} = \frac56 \times 36 = 30$.`,
+        R`<b>Plus de 10 lancers.</b> $\{X \gt 10\}$ = « aucun 6 lors des 10 premiers lancers » $= \overline{S_1} \cap \dots \cap \overline{S_{10}}$ : $\Proba(X \gt 10) = \left(\frac56\right)^{10} \approx 0{,}162$.`,
+        R`<b>$X$ pair.</b> $\Proba(X \text{ pair}) = \sum_{j \ge 1}\Proba(X = 2j) = \sum_{j \ge 1}q^{2j-1}p = pq\sum_{j \ge 1}(q^2)^{j-1} = \frac{pq}{1 - q^2}$ (série géométrique de raison $q^2 \lt 1$).`,
+        R`<b>Simplification.</b> $1 - q^2 = (1 - q)(1 + q) = p(1 + q)$, donc $\Proba(X \text{ pair}) = \frac{q}{1 + q} = \frac{5/6}{11/6} = \frac{5}{11} \approx 0{,}45$.`
+      ],
+      retenir: R`<p>Pour $X \sim \mathcal G(p)$ : $\Proba(X \gt n) = q^n$ (« $n$ échecs »). Sommer sur les valeurs paires donne une série géométrique de raison $q^2$.</p>`
+    },
+    standard: {
+      but: R`<p>Calculs de probabilités avec une loi de Poisson de paramètre 2.</p>`,
+      methode: R`<p>Formule $\Proba(X = k) = e^{-\lambda}\frac{\lambda^k}{k!}$ ; pour « au moins », passer au contraire ; pour les termes pairs, reconnaître $\cosh$.</p>`,
+      etapes: [
+        R`<b>Aucun appel.</b> $\Proba(X = 0) = e^{-2}\frac{2^0}{0!} = e^{-2} \approx 0{,}135$.`,
+        R`<b>Au moins 3 appels.</b> Contraire : $\{X \le 2\}$. $\Proba(X \le 2) = e^{-2}\left(1 + 2 + \frac{2^2}{2!}\right) = 5e^{-2}$, donc $\Proba(X \ge 3) = 1 - 5e^{-2} \approx 1 - 0{,}677 = 0{,}323$.`,
+        R`<b>Termes pairs.</b> $\Proba(X \text{ pair}) = \sum_k e^{-2}\frac{2^{2k}}{(2k)!}$. Or $e^x = \sum\frac{x^n}{n!}$ et $e^{-x} = \sum\frac{(-1)^nx^n}{n!}$ : en additionnant, les termes impairs s'annulent et $\sum_k\frac{x^{2k}}{(2k)!} = \frac{e^x + e^{-x}}2 = \cosh x$.`,
+        R`<b>Conclusion.</b> $\Proba(X \text{ pair}) = e^{-2}\cosh 2 = e^{-2}\frac{e^2 + e^{-2}}{2} = \frac{1 + e^{-4}}{2} \approx 0{,}509$.`
+      ],
+      retenir: R`<p>Avec une loi de Poisson, tout se ramène à la série exponentielle : termes pairs → $\cosh$, termes impairs → $\sinh$.</p>`
+    },
+    'controle-lot': {
+      but: R`<p>Loi du nombre de pièces défectueuses dans un échantillon prélevé sans remise.</p>`,
+      methode: R`<p>Échantillon tiré <strong>sans remise</strong> dans une population à deux catégories → loi <strong>hypergéométrique</strong> ; « au moins 2 » → complémentaire.</p>`,
+      etapes: [
+        R`<b>Univers.</b> Un prélèvement est une partie de 5 pièces parmi 20 : $\binom{20}5 = 15\,504$ issues équiprobables.`,
+        R`<b>Loi.</b> Il y a 4 défectueuses et 16 bonnes : $X \sim \mathcal H(20, 5, \frac{4}{20})$, $X(\Omega) = \{0, \dots, 4\}$ (au plus 4 défectueuses), et $\Proba(X = k) = \frac{\binom4k\binom{16}{5-k}}{\binom{20}5}$ (choisir $k$ défectueuses et $5 - k$ bonnes).`,
+        R`<b>$\Proba(X = 0)$.</b> $\binom{16}{5} = 4\,368$, donc $\Proba(X = 0) = \frac{4\,368}{15\,504} = \frac{91}{323} \approx 0{,}282$ (simplification par 48).`,
+        R`<b>$\Proba(X = 1)$.</b> $\binom41\binom{16}4 = 4 \times 1\,820 = 7\,280$, donc $\Proba(X = 1) = \frac{7\,280}{15\,504} = \frac{455}{969} \approx 0{,}470$.`,
+        R`<b>$\Proba(X \ge 2)$.</b> Contraire : $\{X \le 1\}$. Au dénominateur commun $969$ ($= 3 \times 323$) : $\Proba(X \ge 2) = 1 - \frac{273}{969} - \frac{455}{969} = \frac{241}{969} \approx 0{,}249$.`,
+        R`<b>Espérance.</b> $\Esp(X) = np = 5 \times \frac{4}{20} = 1$ : en moyenne une pièce défectueuse par échantillon.`
+      ],
+      retenir: R`<p>Sans remise → $\mathcal H(N, n, p)$, avec $\Esp = np$ comme pour la binomiale.</p>`
+    },
+    'deuxieme-six': {
+      but: R`<p>Loi du rang du deuxième 6, avec une probabilité, l'espérance et la variance.</p>`,
+      methode: R`<p>$\{X = k\}$ = « exactement un succès avant $k$ » et « succès en $k$ » : deux événements <strong>indépendants</strong> (ils portent sur des lancers différents).</p>`,
+      etapes: [
+        R`<b>Valeurs.</b> Il faut au moins deux lancers : $X(\Omega) = \{2, 3, \dots\}$.`,
+        R`<b>Découpage.</b> $\{X = k\} = A_k \cap S_k$ où $A_k$ : « exactement un 6 parmi les $k - 1$ premiers lancers » et $S_k$ : « 6 au $k$-ième lancer ». $A_k$ ne dépend que des lancers $1..k-1$, donc $A_k$ et $S_k$ sont indépendants.`,
+        R`<b>$\Proba(A_k)$.</b> Le nombre de 6 en $k - 1$ lancers suit $\mathcal B(k-1, \frac16)$ : $\Proba(A_k) = (k-1)\frac16\left(\frac56\right)^{k-2}$.`,
+        R`<b>Loi.</b> $\Proba(X = k) = (k-1)\left(\frac16\right)^2\left(\frac56\right)^{k-2}$ : c'est la loi de Pascal de paramètres $(2, \frac16)$ (formule $\binom{k-1}{r-1}p^rq^{k-r}$ avec $r = 2$).`,
+        R`<b>$\Proba(X = 3)$.</b> $2 \times \frac1{36} \times \frac56 = \frac{10}{216} = \frac5{108} \approx 0{,}046$.`,
+        R`<b>Espérance, variance.</b> $\Esp(X) = \frac rp = 12$ et $\Var(X) = \frac{rq}{p^2} = 2 \times \frac56 \times 36 = 60$. Interprétation : $X$ est la somme de deux attentes géométriques indépendantes, d'espérance 6 chacune.`
+      ],
+      retenir: R`<p>Rang du $r$-ième succès → loi de Pascal ; c'est une somme de $r$ attentes géométriques.</p>`
+    },
+    'reconnaitre-lois': {
+      but: R`<p>Associer à chaque situation la bonne loi usuelle et ses paramètres.</p>`,
+      methode: R`<p>Trois questions : que compte $X$ (des <strong>succès</strong> ou un <strong>rang</strong>) ? tirages <strong>avec ou sans remise</strong> ? nombre d'épreuves <strong>fixé</strong> ou non ?</p>`,
+      etapes: [
+        R`<b>a) Garçons.</b> Chaque enfant est une épreuve de Bernoulli (succès = garçon, $p = \frac12$), 4 épreuves indépendantes, on compte les succès : $\mathcal B(4, \frac12)$, espérance 2.`,
+        R`<b>b) Jusqu'à un as.</b> Avec remise → épreuves indépendantes ; succès = as, $p = \frac4{32} = \frac18$ ; $X$ est le <strong>rang</strong> du premier succès : $\mathcal G(\frac18)$, espérance 8.`,
+        R`<b>c) Rois dans une main.</b> 5 cartes tirées <strong>simultanément</strong> (sans remise) parmi 32 dont 4 rois : $\mathcal H(32, 5, \frac18)$, espérance $\frac58$.`,
+        R`<b>d) Coquilles.</b> 300 pages indépendantes, succès = coquille ($p = 0{,}01$) : $\mathcal B(300;\ 0{,}01)$. Comme $n$ est grand et $p$ petit, on l'approche par $\mathcal P(np) = \mathcal P(3)$.`
+      ],
+      retenir: R`<p>Nombre de succès : binomiale (avec remise) ou hypergéométrique (sans remise). Rang d'un succès : géométrique ou Pascal. Événements rares : Poisson.</p>`
+    },
+    'anniversaire-poisson': {
+      but: R`<p>Calculer une probabilité binomiale, l'approcher par une loi de Poisson et justifier l'approximation.</p>`,
+      methode: R`<p>Reconnaître $\mathcal B(n, p)$ avec $n$ grand et $p$ petit, puis utiliser $\mathcal P(np)$.</p>`,
+      etapes: [
+        R`<b>Loi.</b> Pour chaque étudiant, succès = « anniversaire aujourd'hui », $p = \frac1{365}$, indépendamment : $X \sim \mathcal B(500, \frac1{365})$.`,
+        R`<b>Valeur exacte.</b> $\Proba(X = 0) = \left(\frac{364}{365}\right)^{500} = \exp\left(500\ln\left(1 - \frac1{365}\right)\right)$. Avec $\ln(1 - \frac1{365}) \approx -0{,}002\,743\,5$, on trouve $\exp(-1{,}3717) \approx 0{,}2537$.`,
+        R`<b>Approximation.</b> $\lambda = np = \frac{500}{365} \approx 1{,}370$ ; $\mathcal P(\lambda)$ donne $\Proba(X = 0) \approx e^{-1{,}370} \approx 0{,}2541$. L'écart est d'environ $4 \cdot 10^{-4}$.`,
+        R`<b>Preuve du théorème.</b> $\binom nk p_n^k(1 - p_n)^{n-k} = \underbrace{\tfrac{n(n-1)\cdots(n-k+1)}{n^k}}_{\to 1}\cdot\underbrace{\tfrac{(np_n)^k}{k!}}_{\to \lambda^k/k!}\cdot(1 - p_n)^{n-k}$.`,
+        R`<b>Le dernier facteur.</b> $np_n \to \lambda$ impose $p_n \to 0$, donc $\ln(1 - p_n) \sim -p_n$ et $(n - k)\ln(1 - p_n) \sim -np_n \to -\lambda$ : $(1 - p_n)^{n-k} \to e^{-\lambda}$.`
+      ],
+      retenir: R`<p>$\mathcal B(n, p) \approx \mathcal P(np)$ quand $n$ est grand et $p$ petit : événements rares.</p>`
+    },
+    'couple-tableau': {
+      but: R`<p>Exploiter un tableau de loi conjointe : marginales, espérances, indépendance, loi conditionnelle, covariance.</p>`,
+      methode: R`<p>Marges = sommes des lignes et des colonnes ; indépendance = chaque case égale au produit de ses marges ; loi conditionnelle = colonne divisée par son total.</p>`,
+      etapes: [
+        R`<b>Contrôle.</b> $0{,}1 + 0{,}2 + 0{,}1 + 0{,}2 + 0{,}1 + 0{,}3 = 1$.`,
+        R`<b>Marginales.</b> Lignes : $\Proba(X = 0) = 0{,}1 + 0{,}2 + 0{,}1 = 0{,}4$, $\Proba(X = 1) = 0{,}6$. Colonnes : $\Proba(Y = 0) = 0{,}3$, $\Proba(Y = 1) = 0{,}3$, $\Proba(Y = 2) = 0{,}4$.`,
+        R`<b>Espérances.</b> $\Esp(X) = 0 \times 0{,}4 + 1 \times 0{,}6 = 0{,}6$ ; $\Esp(Y) = 0 \times 0{,}3 + 1 \times 0{,}3 + 2 \times 0{,}4 = 1{,}1$.`,
+        R`<b>Indépendance.</b> Case $(0, 0)$ : $\Proba(X = 0, Y = 0) = 0{,}1$, mais $\Proba(X = 0)\Proba(Y = 0) = 0{,}4 \times 0{,}3 = 0{,}12$. Une seule case qui ne convient pas suffit : <strong>non indépendantes</strong>.`,
+        R`<b>Loi conditionnelle.</b> Colonne $Y = 2$ : $(0{,}1 ;\ 0{,}3)$, de total $0{,}4$. $\Proba(X = 0 \mid Y = 2) = \frac{0{,}1}{0{,}4} = \frac14$, $\Proba(X = 1 \mid Y = 2) = \frac34$ ; elle diffère de la loi de $X$, ce qui confirme la dépendance.`,
+        R`<b>Covariance.</b> $\Esp(XY) = \sum x_iy_jp_{ij}$ : seules les cases avec $x_iy_j \neq 0$ comptent, $1 \times 1 \times 0{,}1 + 1 \times 2 \times 0{,}3 = 0{,}7$. $\Cov(X, Y) = 0{,}7 - 0{,}6 \times 1{,}1 = 0{,}04$.`
+      ],
+      retenir: R`<p>Pour prouver la <strong>non</strong>-indépendance, un contre-exemple suffit ; pour prouver l'indépendance, il faut vérifier <strong>toutes</strong> les cases.</p>`
+    },
+    'urne-avec-sans': {
+      but: R`<p>Comparer les tirages avec et sans remise : loi conjointe, indépendance, loi du maximum.</p>`,
+      methode: R`<p>Écrire le tableau de la loi conjointe (couples équiprobables), puis lire marges, indépendance, et regrouper les cases selon la valeur de $M$.</p>`,
+      etapes: [
+        R`<b>Avec remise : loi conjointe.</b> 9 couples $(i, j)$ équiprobables, $p_{ij} = \frac19$ ; marges : chaque ligne vaut $3 \times \frac19 = \frac13$ (loi uniforme), de même pour les colonnes.`,
+        R`<b>Avec remise : indépendance.</b> $p_{ij} = \frac19 = \frac13 \times \frac13$ pour toutes les cases : indépendantes.`,
+        R`<b>Avec remise : loi de $M$.</b> $M = 1$ : $(1,1)$ → $\frac19$ ; $M = 2$ : $(1,2), (2,1), (2,2)$ → $\frac39$ ; $M = 3$ : les 5 autres couples → $\frac59$. $\Esp(M) = \frac{1 + 6 + 15}{9} = \frac{22}9 \approx 2{,}44$.`,
+        R`<b>Sans remise : loi conjointe.</b> 6 couples $(i, j)$ avec $i \neq j$, chacun $\frac16$ ; la diagonale est nulle. Marges : chaque ligne contient deux $\frac16$, donc $\frac13$ : encore uniformes.`,
+        R`<b>Sans remise : indépendance.</b> $\Proba(X = 1, Y = 1) = 0 \neq \frac13 \times \frac13$ : non indépendantes (le premier tirage interdit une valeur au second).`,
+        R`<b>Sans remise : loi de $M$.</b> $M = 1$ est impossible ; $M = 2$ : $(1,2), (2,1)$ → $\frac26$ ; $M = 3$ : $\frac46$. $\Esp(M) = 2 \times \frac13 + 3 \times \frac23 = \frac83 \approx 2{,}67$.`
+      ],
+      retenir: R`<p>Mêmes lois marginales mais lois conjointes différentes : les marges ne suffisent pas à décrire le couple.</p>`
+    },
+    'min-uniformes': {
+      but: R`<p>Loi du minimum de deux variables uniformes indépendantes.</p>`,
+      methode: R`<p>Le minimum est $\ge k$ si et seulement si <strong>les deux</strong> variables sont $\ge k$ : intersection, puis indépendance ; ensuite différence.</p>`,
+      etapes: [
+        R`<b>Événement clé.</b> $Z(\Omega) = \{1, \dots, n\}$ et $\{Z \ge k\} = \{X \ge k\} \cap \{Y \ge k\}$.`,
+        R`<b>Probabilité.</b> $\Proba(X \ge k) = \frac{n - k + 1}{n}$ (valeurs $k, \dots, n$). Par indépendance, $\Proba(Z \ge k) = \left(\frac{n - k + 1}{n}\right)^2$.`,
+        R`<b>Loi.</b> $\Proba(Z = k) = \Proba(Z \ge k) - \Proba(Z \ge k + 1) = \frac{(n - k + 1)^2 - (n - k)^2}{n^2} = \frac{2(n - k) + 1}{n^2}$ (identité $a^2 - b^2 = (a - b)(a + b)$ avec $a - b = 1$).`,
+        R`<b>Contrôle.</b> $\sum_{k=1}^n(2(n-k) + 1) = 1 + 3 + \dots + (2n - 1) = n^2$ : la somme des probabilités vaut 1.`
+      ],
+      retenir: R`<p>Minimum : $\{Z \ge k\}$ = intersection ; maximum : $\{M \le k\}$ = intersection.</p>`
+    },
+    'de-pieces': {
+      but: R`<p>Une expérience en deux temps : loi conditionnelle, probabilités totales, Bayes.</p>`,
+      methode: R`<p>Écrire la loi de $Y$ <strong>sachant</strong> $X = k$, puis utiliser le système complet $(\{X = k\})_k$.</p>`,
+      etapes: [
+        R`<b>Loi conditionnelle.</b> Sachant $X = k$, on fait $k$ lancers indépendants, succès « pile » $\frac12$ : $Y \sim \mathcal B(k, \frac12)$, i.e. $\Proba(Y = j \mid X = k) = \binom kj\frac1{2^k}$.`,
+        R`<b>$\Proba(Y = 0)$ (probabilités totales).</b> $\Proba(Y = 0) = \sum_{k=1}^6\Proba(X = k)\Proba(Y = 0 \mid X = k) = \frac16\sum_{k=1}^6\frac1{2^k}$.`,
+        R`<b>Somme géométrique.</b> $\sum_{k=1}^6\left(\frac12\right)^k = \frac12\cdot\frac{1 - (1/2)^6}{1 - 1/2} = 1 - \frac1{64} = \frac{63}{64}$, donc $\Proba(Y = 0) = \frac{63}{384} = \frac{21}{128} \approx 0{,}164$.`,
+        R`<b>$\Proba(Y = 6)$.</b> Obtenir 6 piles exige 6 lancers, donc $X = 6$, puis 6 piles : $\frac16 \times \frac1{64} = \frac1{384}$.`,
+        R`<b>Bayes.</b> $\Proba(X = 6 \mid Y = 0) = \frac{\Proba(X = 6)\Proba(Y = 0 \mid X = 6)}{\Proba(Y = 0)} = \frac{1/384}{21/128} = \frac{128}{384 \times 21} = \frac1{63}$. Bien moins que $\frac16$ : ne faire aucun pile en 6 lancers est peu probable.`
+      ],
+      retenir: R`<p>Expérience en deux temps : loi conditionnelle → probabilités totales → Bayes.</p>`
+    },
+    'poisson-filtre': {
+      but: R`<p>Montrer qu'une loi de Poisson « filtrée » par une binomiale reste une loi de Poisson.</p>`,
+      methode: R`<p>Probabilités totales avec le système complet $(\{X = n\})_{n \ge 0}$, puis faire apparaître une <strong>série exponentielle</strong>.</p>`,
+      etapes: [
+        R`<b>Probabilités totales.</b> Pour $k \in \N$, $\Proba(Y = k \mid X = n) = 0$ si $n \lt k$, donc $\Proba(Y = k) = \sum_{n \ge k}e^{-\lambda}\frac{\lambda^n}{n!}\binom nkp^kq^{n-k}$.`,
+        R`<b>Simplifier.</b> $\frac1{n!}\binom nk = \frac1{k!\,(n-k)!}$ et $\lambda^n = \lambda^k\lambda^{n-k}$ : $\Proba(Y = k) = e^{-\lambda}\frac{(\lambda p)^k}{k!}\sum_{n \ge k}\frac{(\lambda q)^{n-k}}{(n-k)!}$.`,
+        R`<b>Réindexer.</b> Avec $m = n - k$ : $\sum_{m \ge 0}\frac{(\lambda q)^m}{m!} = e^{\lambda q}$.`,
+        R`<b>Conclure.</b> $\Proba(Y = k) = e^{-\lambda + \lambda q}\frac{(\lambda p)^k}{k!} = e^{-\lambda p}\frac{(\lambda p)^k}{k!}$ car $-\lambda + \lambda q = -\lambda p$. Donc $Y \sim \mathcal P(\lambda p)$, et en moyenne $\lambda p$ acheteurs.`
+      ],
+      retenir: R`<p>Sommes du type $\sum_n\frac{\lambda^n}{n!}\cdots$ : sortir ce qui ne dépend pas de $n$, réindexer, reconnaître $e^x$.</p>`
+    },
+    'cov-nulle': {
+      but: R`<p>Montrer qu'une covariance nulle n'implique pas l'indépendance.</p>`,
+      methode: R`<p>Calculer $\Cov(X, Y) = \Esp(XY) - \Esp(X)\Esp(Y)$ par transfert, puis exhiber une case qui contredit l'indépendance.</p>`,
+      etapes: [
+        R`<b>Loi de $X$.</b> Valeurs $-2, -1, 1, 2$, chacune de probabilité $\frac14$ ; par symétrie $\Esp(X) = \frac{-2 - 1 + 1 + 2}{4} = 0$.`,
+        R`<b>Loi de $Y = X^2$.</b> $Y = 1$ si $X = \pm 1$ (probabilité $\frac12$), $Y = 4$ si $X = \pm 2$ (probabilité $\frac12$).`,
+        R`<b>Covariance.</b> $XY = X^3$ et, par transfert, $\Esp(X^3) = \frac{-8 - 1 + 1 + 8}{4} = 0$. Donc $\Cov(X, Y) = 0 - 0 \times \Esp(Y) = 0$.`,
+        R`<b>Pas d'indépendance.</b> Si $X = 1$, alors $Y = 1$ : $\Proba(X = 1, Y = 4) = 0$, alors que $\Proba(X = 1)\Proba(Y = 4) = \frac14 \times \frac12 = \frac18 \neq 0$.`
+      ],
+      retenir: R`<p>Indépendantes $\Rightarrow$ covariance nulle, mais la <strong>réciproque est fausse</strong> ($Y$ est même ici une fonction de $X$).</p>`
+    },
+    'somme-des': {
+      but: R`<p>Loi, espérance et variance de la somme de deux dés.</p>`,
+      methode: R`<p>Formule de convolution $\Proba(S = s) = \sum_k\Proba(X = k)\Proba(Y = s - k)$ ; linéarité pour l'espérance ; indépendance pour la variance.</p>`,
+      etapes: [
+        R`<b>Valeurs.</b> $S(\Omega) = \{2, \dots, 12\}$ et $\{S = s\} = \bigsqcup_k\big(\{X = k\} \cap \{Y = s - k\}\big)$, où il faut $1 \le k \le 6$ et $1 \le s - k \le 6$.`,
+        R`<b>Chaque terme.</b> Par indépendance, $\Proba(X = k, Y = s - k) = \frac16 \times \frac16 = \frac1{36}$.`,
+        R`<b>Nombre de termes.</b> $k$ varie de $\max(1, s - 6)$ à $\min(6, s - 1)$, soit $6 - |s - 7|$ valeurs. Exemples : $s = 7$ → 6 termes, $s = 4$ → 3 termes $(1,3), (2,2), (3,1)$.`,
+        R`<b>Loi.</b> $\Proba(S = s) = \frac{6 - |s - 7|}{36}$ : $\frac1{36}, \frac2{36}, \dots, \frac6{36}, \dots, \frac1{36}$.`,
+        R`<b>Espérance et variance.</b> $\Esp(S) = 3{,}5 + 3{,}5 = 7$. Pour un dé, $\Var = \frac{6^2 - 1}{12} = \frac{35}{12}$ ; par indépendance, $\Var(S) = \frac{35}{12} \times 2 = \frac{35}{6}$.`
+      ],
+      retenir: R`<p>Loi d'une somme : convolution. Espérance : toujours additive. Variance : additive si les variables sont <strong>indépendantes</strong>.</p>`
+    },
+    'somme-poisson': {
+      but: R`<p>Loi de la somme de deux variables de Poisson indépendantes, puis loi conditionnelle de $X$ sachant la somme.</p>`,
+      methode: R`<p>Convolution + binôme de Newton ; puis $\Proba(X = k \mid S = n) = \frac{\Proba(X = k, Y = n - k)}{\Proba(S = n)}$.</p>`,
+      etapes: [
+        R`<b>Convolution.</b> $\Proba(S = n) = \sum_{k=0}^n\Proba(X = k)\Proba(Y = n - k) = \sum_{k=0}^n e^{-\lambda}\frac{\lambda^k}{k!}e^{-\mu}\frac{\mu^{n-k}}{(n-k)!}$.`,
+        R`<b>Binôme.</b> En multipliant et divisant par $n!$ : $\Proba(S = n) = \frac{e^{-(\lambda + \mu)}}{n!}\sum_{k=0}^n\binom nk\lambda^k\mu^{n-k} = e^{-(\lambda + \mu)}\frac{(\lambda + \mu)^n}{n!}$ : $S \sim \mathcal P(\lambda + \mu)$.`,
+        R`<b>Événement conjoint.</b> $\{X = k, S = n\} = \{X = k, Y = n - k\}$, de probabilité $e^{-\lambda}\frac{\lambda^k}{k!}e^{-\mu}\frac{\mu^{n-k}}{(n-k)!}$ par indépendance.`,
+        R`<b>Quotient.</b> $\Proba(X = k \mid S = n) = \frac{n!}{k!(n-k)!}\cdot\frac{\lambda^k\mu^{n-k}}{(\lambda + \mu)^n} = \binom nk\left(\frac{\lambda}{\lambda + \mu}\right)^k\left(\frac{\mu}{\lambda + \mu}\right)^{n-k}$ : loi $\mathcal B\left(n, \frac{\lambda}{\lambda + \mu}\right)$.`
+      ],
+      retenir: R`<p>$\mathcal P(\lambda) + \mathcal P(\mu) = \mathcal P(\lambda + \mu)$ (indépendantes) ; sachant la somme, chaque « part » est binomiale.</p>`
+    }
+  };
   L2.chapter('probas', 'va-discretes', {
     intro: R`<p>Une <strong>variable aléatoire</strong> associe un nombre au résultat d'une expérience. On étudie ici celles qui prennent un nombre fini ou dénombrable de valeurs : leur <strong>loi</strong>, leur <strong>espérance</strong> et leur <strong>variance</strong>, les <strong>lois usuelles</strong> (uniforme, Bernoulli, binomiale, géométrique, Pascal, hypergéométrique, Poisson), puis les <strong>couples</strong> de variables : loi conjointe, lois marginales, lois conditionnelles et indépendance.</p>`,
-    cours, fiche, exercices, methodes, generateurs, plan, reperes
+    cours, fiche, exercices, methodes, generateurs, plan, reperes, details
   });
 })();

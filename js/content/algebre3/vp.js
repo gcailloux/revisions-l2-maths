@@ -52,6 +52,8 @@
     return { B, ker, Rr };
   }
   function vectTex(vs) { return R`\Vect\left(` + vs.map(tuple).join(',\,') + R`\right)`; }
+  const pn = x => (x < 0 ? '(' + x + ')' : String(x));                  // nombre entre parenthèses s'il est négatif
+  const minor = (A, i, j) => A[i][i] * A[j][j] - A[i][j] * A[j][i];     // mineur principal (lignes/colonnes i, j)
 
   /* ------------------------------------------------------------------ */
   /* Générateurs                                                         */
@@ -74,6 +76,23 @@
         });
         cor += R`<p><em>Vérification :</em> $\lambda_1 + \lambda_2 = ${l1 + l2} = \tr A$ et $\lambda_1\lambda_2 = ${l1 * l2} = \det A$.</p>`;
         return {
+          detail: {
+            but: R`<p>Polynôme caractéristique, valeurs propres et bases des sous-espaces propres de $A = ${mat(A)}$.</p>`,
+            methode: R`<p>En taille 2 : $\chi_A(X) = X^2 - \tr(A)X + \det(A)$. Pour chaque valeur propre $\lambda$, $E_\lambda(A) = \Ker(A - \lambda I_2)$ ; comme $A - \lambda I_2$ est de rang 1, une seule équation suffit.</p>`,
+            etapes: [
+              R`<b>Trace et déterminant.</b> $\tr A = ${A[0][0]} + ${pn(A[1][1])} = ${t}$ (somme de la diagonale) et $\det A = ${A[0][0]} \times ${pn(A[1][1])} - ${pn(A[0][1])} \times ${pn(A[1][0])} = ${d}$.`,
+              R`<b>Polynôme caractéristique.</b> $\chi_A(X) = ${poly([d, -t, 1])}$.`,
+              R`<b>Racines.</b> $\Delta = ${pn(t)}^2 - 4 \times ${pn(d)} = ${t * t - 4 * d}$, $\sqrt\Delta = ${l2 - l1}$, donc $\lambda = \frac{${t} \pm ${l2 - l1}}{2}$ : $\lambda_1 = ${l1}$ et $\lambda_2 = ${l2}$.`,
+              ...[l1, l2].map(l => {
+                const { B, ker } = eigenSpaceTex(A, l, 2);
+                const row = B[0].some(x => x !== 0) ? B[0] : B[1];
+                const v = ker[0], Av = matVec(A, v);
+                return R`<b>$E_{${l}}(A)$.</b> $A - ${pn(l)}I_2 = ${mat(B)}$ : ses lignes sont proportionnelles (son déterminant est nul), le système se réduit à $${lin(row, ['x', 'y'])} = 0$. Une solution non nulle est $v = ${tuple(v)}$, donc $E_{${l}}(A) = ${vectTex(ker)}$. Contrôle : $Av = ${ML.vec(Av)} = ${pn(l)}\,v$ ✓.`;
+              }),
+              R`<b>Vérification globale.</b> $\lambda_1 + \lambda_2 = ${l1 + l2} = \tr A$ et $\lambda_1\lambda_2 = ${l1 * l2} = \det A$.`
+            ],
+            retenir: R`<p>En dimension 2 : somme des valeurs propres = trace, produit = déterminant.</p>`
+          },
           enonce: R`<p>Soit $A = ${mat(A)} \in \M_2(\R)$. Déterminer le polynôme caractéristique de $A$, ses valeurs propres, et une base de chaque sous-espace propre.</p>`,
           indication: R`<p>Utilisez $\chi_A(X) = X^2 - \tr(A)X + \det(A)$, puis résolvez $(A - \lambda I_2)X = 0$ pour chaque valeur propre : une seule équation suffit.</p>`,
           correction: cor
@@ -100,6 +119,31 @@
         });
         cor += R`<p>Les trois valeurs propres sont distinctes : les trois vecteurs propres obtenus forment une famille libre (ch. 3, corollaire de la somme directe), donc une base de $\R^3$.</p>`;
         return {
+          detail: (() => {
+            const r0 = d === 0 ? 0 : eigs[0], i0 = eigs.indexOf(r0), rest = eigs.filter((x, i) => i !== i0);
+            const s2 = minor(A, 0, 1) + minor(A, 0, 2) + minor(A, 1, 2);
+            const steps = [
+              R`<b>Trace.</b> $\tr A = ${A[0][0]} + ${pn(A[1][1])} + ${pn(A[2][2])} = ${t}$.`,
+              R`<b>Mineurs principaux d'ordre 2</b> (on garde les lignes et colonnes $i$ et $j$) : $\begin{vmatrix} ${A[0][0]} & ${A[0][1]} \\ ${A[1][0]} & ${A[1][1]} \end{vmatrix} = ${minor(A, 0, 1)}$, $\begin{vmatrix} ${A[0][0]} & ${A[0][2]} \\ ${A[2][0]} & ${A[2][2]} \end{vmatrix} = ${minor(A, 0, 2)}$, $\begin{vmatrix} ${A[1][1]} & ${A[1][2]} \\ ${A[2][1]} & ${A[2][2]} \end{vmatrix} = ${minor(A, 1, 2)}$ ; leur somme est $s_2 = ${s2}$.`,
+              R`<b>Déterminant.</b> $\det A = ${d}$ (développement selon une ligne ou une colonne).`,
+              R`<b>Polynôme caractéristique.</b> $\chi_A(X) = X^3 - \tr(A)X^2 + s_2X - \det A = ${poly(c)}$.`,
+              R`<b>Racine évidente.</b> ${d === 0 ? R`$\det A = 0$ : $0$ est racine.` : R`Une racine entière divise le terme constant $${-d}$ ; en testant ses diviseurs, on trouve $\chi_A(${r0}) = 0$.`}`,
+              R`<b>Factorisation.</b> $\chi_A(X) = ${r0 === 0 ? 'X' : '(' + ML.xMinus(r0) + ')'}\big(${poly([rest[0] * rest[1], -(rest[0] + rest[1]), 1])}\big)$ (division euclidienne ou identification des coefficients). Le trinôme a pour racines $${rest[0]}$ et $${rest[1]}$ (somme $${rest[0] + rest[1]}$, produit $${rest[0] * rest[1]}$). Donc $\Sp(A) = \{${eigs.join(',\\,')}\}$, trois valeurs propres simples.`
+            ];
+            eigs.forEach(l => {
+              const { B, ker, Rr } = eigenSpaceTex(A, l, 3);
+              const eqs = Rr.filter(row => row.some(x => !x.isZero())).map(row => lin(row, ['x', 'y', 'z']) + ' = 0');
+              const v = ker[0], Av = matVec(A, v);
+              steps.push(R`<b>$E_{${l}}(A)$.</b> $A - ${pn(l)}I_3 = ${mat(B)}$. On échelonne (les opérations sur les lignes ne changent pas les solutions) : $\begin{cases} ${eqs.join(R` \\ `)} \end{cases}$. Il reste une inconnue libre ; en la fixant, on obtient $v = ${tuple(v)}$ et $E_{${l}}(A) = ${vectTex(ker)}$. Contrôle : $Av = ${ML.vec(Av)} = ${pn(l)}\,v$ ✓.`);
+            });
+            steps.push(R`<b>Conclusion.</b> Les trois valeurs propres sont distinctes : chaque sous-espace propre est une droite et les trois vecteurs propres forment une base de $\R^3$.`);
+            return {
+              but: R`<p>Polynôme caractéristique, spectre et sous-espaces propres d'une matrice $3 \times 3$.</p>`,
+              methode: R`<p>$\chi_A(X) = X^3 - \tr(A)X^2 + s_2X - \det(A)$, où $s_2$ est la somme des mineurs principaux d'ordre 2 ; racine évidente, factorisation ; puis $(A - \lambda I_3)X = 0$ par échelonnement.</p>`,
+              etapes: steps,
+              retenir: R`<p>Racine évidente : chercher parmi les diviseurs du terme constant ; vérifier chaque vecteur propre avec $Av = \lambda v$.</p>`
+            };
+          })(),
           enonce: R`<p>Soit $A = ${mat(A)}$. Calculer $\chi_A$, en déduire le spectre de $A$, puis une base de chacun de ses sous-espaces propres.</p>`,
           indication: R`<p>Les valeurs propres sont entières. Le terme constant de $\chi_A$ est $-\det A = ${-d}$ : testez ses diviseurs (et $0$ si $\det A = 0$) pour trouver une racine évidente.</p>`,
           correction: cor
@@ -130,6 +174,25 @@
           cor += R`<p>Si l'on avait $Av = \lambda v$, on aurait $\lambda = ${F(Av[i], v[i]).tex()}$ (coordonnée ${i + 1}), mais la coordonnée ${j + 1} donne $${Av[j]} \neq ${F(Av[i], v[i]).tex()}\times(${v[j]})$. <strong>$v$ n'est pas un vecteur propre</strong> de $A$.</p>`;
         }
         return {
+          detail: (() => {
+            const rows = A.map((row, i) => row.map((a, j) => pn(a) + R` \times ` + pn(v[j])).join(' + ') + ' = ' + Av[i]);
+            const steps = [
+              R`<b>Définition.</b> $v$ est vecteur propre de $A$ si $v \neq 0$ et s'il existe $\lambda$ tel que $Av = \lambda v$. Ici $v \neq 0$ ; il suffit de calculer $Av$.`,
+              R`<b>Produit $Av$, ligne par ligne.</b> ${rows.map((s, i) => R`ligne ${i + 1} : $${s}$`).join(' ; ')}. Donc $Av = ${ML.vec(Av)}$.`
+            ];
+            if (lam !== null) {
+              steps.push(R`<b>Comparaison.</b> Chaque coordonnée de $Av$ est celle de $v$ multipliée par $${lam.tex()}$ : $Av = ${lam.tex()}\,v$. <strong>$v$ est vecteur propre</strong> pour la valeur propre $${lam.tex()}$.`);
+            } else {
+              const i = v.findIndex(x => x !== 0), j = v.findIndex((x, k) => k !== i && (x !== 0 || Av[k] !== 0)), q = F(Av[i], v[i]);
+              steps.push(R`<b>Comparaison.</b> La coordonnée ${i + 1} imposerait $\lambda = \frac{${Av[i]}}{${v[i]}} = ${q.tex()}$, mais alors la coordonnée ${j + 1} de $Av$ devrait valoir $${q.tex()} \times ${pn(v[j])} = ${q.mul(v[j]).tex()}$, et elle vaut $${Av[j]}$. $Av$ n'est pas colinéaire à $v$ : <strong>$v$ n'est pas vecteur propre</strong>.`);
+            }
+            return {
+              but: R`<p>Décider si $v$ est un vecteur propre de $A$.</p>`,
+              methode: R`<p>Pas besoin de $\chi_A$ : calculer $Av$ et tester s'il est <strong>colinéaire</strong> à $v$.</p>`,
+              etapes: steps,
+              retenir: R`<p>Tester un vecteur propre ne coûte qu'un produit matrice-vecteur.</p>`
+            };
+          })(),
           enonce: R`<p>Soit $A = ${mat(A)}$ et $v = ${ML.vec(v)}$. Le vecteur $v$ est-il un vecteur propre de $A$ ? Si oui, pour quelle valeur propre ?</p>`,
           indication: R`<p>Inutile de calculer $\chi_A$ : calculez $Av$ et regardez s'il est colinéaire à $v$.</p>`,
           correction: cor
@@ -163,6 +226,23 @@
           }
         }
         return {
+          detail: (() => {
+            const steps = [
+              R`<b>Trace et déterminant.</b> $\tr A = ${A[0][0]} + ${pn(A[1][1])} = ${t}$ ; $\det A = ${A[0][0]} \times ${pn(A[1][1])} - ${pn(A[0][1])} \times ${pn(A[1][0])} = ${d}$.`,
+              R`<b>Polynôme caractéristique.</b> $\chi_A(X) = X^2 - \tr(A)X + \det(A) = ${poly([d, -t, 1])}$.`,
+              R`<b>Discriminant.</b> $\Delta = ${pn(t)}^2 - 4 \times ${pn(d)} = ${D}$.`
+            ];
+            if (D > 0) steps.push(R`<b>$\Delta \gt 0$.</b> Deux racines réelles distinctes $\lambda = \frac{${t} \pm \sqrt{${D}}}{2}$ : $\Sp_\R(A) = \Sp_\C(A)$ a deux éléments, et chaque sous-espace propre est une droite.`);
+            else if (D === 0) steps.push(R`<b>$\Delta = 0$.</b> Une racine double $\lambda = \frac{${t}}{2} = ${F(t, 2).tex()}$. Comme $A$ n'est pas égale à $\lambda I_2$, la matrice $A - \lambda I_2$ est non nulle, de rang 1 : $\dim E_\lambda = 1$, inférieure à la multiplicité 2.`);
+            else steps.push(R`<b>$\Delta \lt 0$.</b> Pas de racine réelle : $\Sp_\R(A) = \varnothing$. Dans $\C$ : $\lambda = \frac{${t} \pm i\sqrt{${-D}}}{2}$, deux valeurs propres complexes conjuguées (le polynôme est à coefficients réels).`);
+            steps.push(R`<b>Contrôle.</b> La somme des valeurs propres (dans $\C$) vaut $\tr A = ${t}$ et leur produit $\det A = ${d}$.`);
+            return {
+              but: R`<p>Déterminer les valeurs propres réelles et complexes de $A$.</p>`,
+              methode: R`<p>$\chi_A = X^2 - \tr(A)X + \det(A)$ ; le <strong>signe du discriminant</strong> décide.</p>`,
+              etapes: steps,
+              retenir: R`<p>Sur $\R$, une matrice peut n'avoir aucune valeur propre ; sur $\C$, elle en a toujours.</p>`
+            };
+          })(),
           enonce: R`<p>Soit $A = ${mat(A)}$. Déterminer $\Sp_\R(A)$ et $\Sp_\C(A)$.</p>`,
           correction: cor
         };
@@ -563,8 +643,172 @@
     { etape: 4, si: R`Un doute sur le résultat`, alors: R`Calculer $AX$ pour un vecteur trouvé (on doit obtenir $\lambda X$) et vérifier <b>$\sum \lambda_i = \tr A$</b>.` }
   ];
 
+
+  /* ------------------------------------------------------------------ */
+  /* Corrections détaillées (bouton « Correction détaillée »)            */
+  /* ------------------------------------------------------------------ */
+  const details = {
+    mat2: {
+      but: R`<p>Trouver le polynôme caractéristique, les valeurs propres et une base de chaque sous-espace propre de $A = \begin{pmatrix} 4 & -2 \\ 1 & 1 \end{pmatrix}$.</p>`,
+      methode: R`<p>En taille 2 : $\chi_A(X) = X^2 - \tr(A)X + \det(A)$. Les valeurs propres sont ses racines ; $E_\lambda(A) = \Ker(A - \lambda I_2)$ s'obtient en résolvant un système (une seule équation utile).</p>`,
+      etapes: [
+        R`<b>Trace et déterminant.</b> $\tr A = 4 + 1 = 5$ (somme de la diagonale) ; $\det A = 4 \times 1 - (-2) \times 1 = 6$.`,
+        R`<b>Polynôme caractéristique.</b> $\chi_A(X) = X^2 - 5X + 6$. Ses racines ont pour somme 5 et pour produit 6 : ce sont 2 et 3. Donc $\chi_A = (X - 2)(X - 3)$ et $\Sp(A) = \{2, 3\}$.`,
+        R`<b>$E_2(A)$.</b> $A - 2I_2 = \begin{pmatrix} 2 & -2 \\ 1 & -1 \end{pmatrix}$. Ses lignes sont proportionnelles (normal : $\det(A - 2I_2) = 0$), le système $(A - 2I_2)X = 0$ se réduit à $x - y = 0$. Les solutions sont $(y, y) = y(1, 1)$ : $E_2(A) = \Vect\big((1, 1)\big)$.`,
+        R`<b>$E_3(A)$.</b> $A - 3I_2 = \begin{pmatrix} 1 & -2 \\ 1 & -2 \end{pmatrix}$ : équation $x - 2y = 0$, solutions $y(2, 1)$, donc $E_3(A) = \Vect\big((2, 1)\big)$.`,
+        R`<b>Vérification.</b> $A\begin{pmatrix}1\\1\end{pmatrix} = \begin{pmatrix}2\\2\end{pmatrix}$ et $A\begin{pmatrix}2\\1\end{pmatrix} = \begin{pmatrix}6\\3\end{pmatrix} = 3\begin{pmatrix}2\\1\end{pmatrix}$ ✓.`
+      ],
+      retenir: R`<p>Toujours vérifier un vecteur propre en calculant $Av$ : c'est rapide et ça évite les erreurs de signe.</p>`
+    },
+    mat3: {
+      but: R`<p>Calculer $\chi_A$, le spectre et les sous-espaces propres d'une matrice $3 \times 3$.</p>`,
+      methode: R`<p>$\chi_A(X) = X^3 - \tr(A)X^2 + s_2X - \det(A)$, où $s_2$ est la somme des mineurs principaux d'ordre 2. Puis, pour chaque valeur propre, résoudre $(A - \lambda I_3)X = 0$.</p>`,
+      etapes: [
+        R`<b>Trace.</b> $\tr A = 2 + (-4) + 5 = 3$.`,
+        R`<b>Déterminant</b> (développement selon la 1<sup>re</sup> ligne) : $2\begin{vmatrix} -4 & 12 \\ -2 & 5 \end{vmatrix} - 0 + 4\begin{vmatrix} 3 & -4 \\ 1 & -2 \end{vmatrix} = 2 \times 4 + 4 \times (-2) = 0$. Donc $0$ est valeur propre.`,
+        R`<b>Mineurs principaux</b> (on barre la ligne et la colonne $k$) : $\begin{vmatrix} 2 & 0 \\ 3 & -4\end{vmatrix} = -8$, $\begin{vmatrix} 2 & 4 \\ 1 & 5\end{vmatrix} = 6$, $\begin{vmatrix} -4 & 12 \\ -2 & 5\end{vmatrix} = 4$ ; $s_2 = 2$.`,
+        R`<b>Polynôme.</b> $\chi_A = X^3 - 3X^2 + 2X = X(X^2 - 3X + 2) = X(X - 1)(X - 2)$ : $\Sp(A) = \{0, 1, 2\}$, trois valeurs propres simples.`,
+        R`<b>$E_0(A) = \Ker A$.</b> Ligne 1 : $2x + 4z = 0$, donc $x = -2z$. Ligne 3 : $x - 2y + 5z = 0$, donc $-2y + 3z = 0$, $y = \frac32z$. Avec $z = 2$ : $(-4, 3, 2)$. Contrôle ligne 2 : $3(-4) - 4 \times 3 + 12 \times 2 = 0$ ✓.`,
+        R`<b>$E_1(A)$.</b> $A - I_3 = \begin{pmatrix} 1 & 0 & 4 \\ 3 & -5 & 12 \\ 1 & -2 & 4 \end{pmatrix}$. Ligne 1 : $x = -4z$ ; ligne 2 : $-12z - 5y + 12z = 0$, donc $y = 0$. Vecteur $(-4, 0, 1)$.`,
+        R`<b>$E_2(A)$.</b> $A - 2I_3 = \begin{pmatrix} 0 & 0 & 4 \\ 3 & -6 & 12 \\ 1 & -2 & 3 \end{pmatrix}$. Ligne 1 : $z = 0$ ; ligne 3 : $x = 2y$. Vecteur $(2, 1, 0)$.`,
+        R`<b>Cohérence.</b> Chaque valeur propre est simple, donc chaque sous-espace propre est une droite ($1 \le \dim E_\lambda \le m(\lambda) = 1$).`
+      ],
+      retenir: R`<p>$\chi_A = X^3 - \tr(A)X^2 + s_2X - \det A$ évite de développer $\det(XI - A)$ ; si $\det A = 0$, $0$ est valeur propre.</p>`
+    },
+    param: {
+      but: R`<p>Discuter, selon $a$, les valeurs propres réelles (et complexes) de $A_a$ et ses sous-espaces propres.</p>`,
+      methode: R`<p>Écrire $\chi_{A_a}$ sous forme canonique $(X - 1)^2 - a$ : le signe de $a$ décide du nombre de racines réelles.</p>`,
+      etapes: [
+        R`<b>Polynôme.</b> $\tr A_a = 2$, $\det A_a = 1 - a$ : $\chi = X^2 - 2X + 1 - a = (X - 1)^2 - a$.`,
+        R`<b>Cas $a \gt 0$.</b> $(X-1)^2 = a \iff X = 1 \pm \sqrt a$ : deux valeurs propres réelles distinctes. Pour $\lambda = 1 + \sqrt a$ : $A_a - \lambda I_2 = \begin{pmatrix} -\sqrt a & a \\ 1 & -\sqrt a \end{pmatrix}$, la 2<sup>e</sup> ligne donne $x = \sqrt a\,y$ : $E_{1+\sqrt a} = \Vect\big((\sqrt a, 1)\big)$. De même $E_{1-\sqrt a} = \Vect\big((-\sqrt a, 1)\big)$.`,
+        R`<b>Cas $a = 0$.</b> $\chi = (X - 1)^2$, valeur propre double $1$. $A_0 - I_2 = \begin{pmatrix} 0 & 0 \\ 1 & 0 \end{pmatrix}$ donne $x = 0$ : $E_1 = \Vect\big((0, 1)\big)$, de dimension $1$ alors que la multiplicité est $2$.`,
+        R`<b>Cas $a \lt 0$ dans $\R$.</b> $(X - 1)^2 = a \lt 0$ est impossible : $\Sp_\R(A_a) = \varnothing$.`,
+        R`<b>Cas $a \lt 0$ dans $\C$.</b> $X - 1 = \pm i\sqrt{-a}$, soit $\lambda = 1 \pm i\sqrt{-a}$. Pour $\lambda = 1 + i\sqrt{-a}$, la 2<sup>e</sup> ligne donne $x = i\sqrt{-a}\,y$ : $E_\lambda = \Vect\big((i\sqrt{-a}, 1)\big)$ ; contrôle avec la 1<sup>re</sup> ligne : $-i\sqrt{-a} \cdot i\sqrt{-a} + a = -a + a = 0$ ✓.`
+      ],
+      retenir: R`<p>Matrice à paramètre : mettre $\chi$ sous forme canonique et discuter le signe du discriminant.</p>`
+    },
+    projecteur: {
+      but: R`<p>Montrer que les valeurs propres d'un projecteur sont 0 et 1, et identifier $E_1(p)$.</p>`,
+      methode: R`<p>Appliquer la relation $p^2 = p$ à un <strong>vecteur propre</strong> : on obtient une équation polynomiale sur $\lambda$.</p>`,
+      etapes: [
+        R`<b>Vecteur propre.</b> Soit $\lambda \in \Sp(p)$ et $x \neq 0$ tel que $p(x) = \lambda x$.`,
+        R`<b>Appliquer $p$ deux fois.</b> $p(p(x)) = p(\lambda x) = \lambda p(x) = \lambda^2x$ (linéarité). Mais $p \circ p = p$, donc $p(p(x)) = p(x) = \lambda x$.`,
+        R`<b>Conclure.</b> $\lambda^2x = \lambda x$, soit $(\lambda^2 - \lambda)x = 0$ ; comme $x \neq 0$, $\lambda(\lambda - 1) = 0$ : $\lambda \in \{0, 1\}$.`,
+        R`<b>$E_1(p) \subset \Imm p$.</b> Si $p(x) = x$, alors $x = p(x)$ est une image.`,
+        R`<b>$\Imm p \subset E_1(p)$.</b> Si $y = p(x)$, alors $p(y) = p(p(x)) = p(x) = y$.`,
+        R`<b>$1$ et $0$ sont atteints.</b> Si $p \neq 0$, $\Imm p \neq \{0\}$ contient un vecteur non nul invariant : $1 \in \Sp(p)$. Si $p \neq \Id$, il existe $x$ avec $y = x - p(x) \neq 0$, et $p(y) = p(x) - p(p(x)) = 0$ : $0 \in \Sp(p)$.`
+      ],
+      retenir: R`<p>Si $P(u) = 0$ pour un polynôme $P$, toute valeur propre $\lambda$ vérifie $P(\lambda) = 0$.</p>`
+    },
+    'projecteur#1': {
+      but: R`<p>Spectre d'une symétrie et décomposition $E = E_1(s) \oplus E_{-1}(s)$.</p>`,
+      methode: R`<p>Relation $s^2 = \Id$ appliquée à un vecteur propre ; puis décomposition explicite de tout vecteur.</p>`,
+      etapes: [
+        R`<b>Valeurs propres.</b> Si $s(x) = \lambda x$, $x \neq 0$ : $x = s(s(x)) = \lambda^2x$, donc $\lambda^2 = 1$, $\lambda = \pm1$.`,
+        R`<b>Partie paire.</b> $a = \frac{x + s(x)}2$ vérifie $s(a) = \frac{s(x) + s^2(x)}{2} = \frac{s(x) + x}{2} = a$ : $a \in E_1(s)$.`,
+        R`<b>Partie impaire.</b> $b = \frac{x - s(x)}2$ vérifie $s(b) = \frac{s(x) - x}{2} = -b$ : $b \in E_{-1}(s)$.`,
+        R`<b>Somme.</b> $x = a + b$, donc $E = E_1(s) + E_{-1}(s)$.`,
+        R`<b>Directe.</b> Si $x \in E_1 \cap E_{-1}$, alors $x = s(x) = -x$, donc $x = 0$.`
+      ],
+      retenir: R`<p>Écrire $x = \frac{x + s(x)}{2} + \frac{x - s(x)}{2}$ : c'est la même idée que fonction paire + fonction impaire.</p>`
+    },
+    'projecteur#2': {
+      but: R`<p>Valeurs propres possibles de $u$ si $u^3 = u$, et un exemple.</p>`,
+      methode: R`<p>Appliquer $u^3 = u$ à un vecteur propre.</p>`,
+      etapes: [
+        R`<b>Vecteur propre.</b> $u(x) = \lambda x$, $x \neq 0$ : $u^3(x) = \lambda^3x$ (récurrence : $u^k(x) = \lambda^kx$).`,
+        R`<b>Relation.</b> $\lambda^3x = u(x) = \lambda x$, donc $(\lambda^3 - \lambda)x = 0$ et $\lambda(\lambda - 1)(\lambda + 1) = 0$.`,
+        R`<b>Exemple.</b> $A = \mathrm{diag}(-1, 0, 1)$ : $A^3 = \mathrm{diag}((-1)^3, 0, 1) = A$, et le spectre d'une matrice diagonale est sa diagonale.`
+      ],
+      retenir: R`<p>Le spectre est inclus dans les racines de tout polynôme annulateur.</p>`
+    },
+    nilpotent: {
+      but: R`<p>Spectre, polynôme caractéristique et trace d'une matrice nilpotente.</p>`,
+      methode: R`<p>Appliquer $A^p = 0$ à un vecteur propre ; puis utiliser que $\chi_A$ est scindé sur $\C$.</p>`,
+      etapes: [
+        R`<b>Seule valeur propre possible.</b> Si $AX = \lambda X$, $X \neq 0$, alors $A^pX = \lambda^pX$. Or $A^p = 0$, donc $\lambda^pX = 0$ et $\lambda = 0$.`,
+        R`<b>$0$ est bien valeur propre.</b> $\det(A)^p = \det(A^p) = 0$, donc $\det A = 0$ : $A$ n'est pas inversible et $0 \in \Sp(A)$.`,
+        R`<b>Polynôme caractéristique.</b> $\chi_A$ est unitaire de degré $n$ et scindé sur $\C$ ; sa seule racine est $0$, donc $\chi_A = X^n$.`,
+        R`<b>Trace.</b> Le coefficient de $X^{n-1}$ dans $\chi_A$ vaut $-\tr A$ ; il est nul, donc $\tr A = 0$.`
+      ],
+      retenir: R`<p>Nilpotente ⟹ $\Sp = \{0\}$, $\chi_A = X^n$, $\tr A = 0$, $\det A = 0$.</p>`
+    },
+    'nilpotent#1': {
+      but: R`<p>Relier les valeurs propres de $A$ et de $A^{-1}$.</p>`,
+      methode: R`<p>Multiplier l'égalité $AX = \lambda X$ par $A^{-1}$.</p>`,
+      etapes: [
+        R`<b>$0$ n'est pas valeur propre.</b> $A$ inversible ⟹ $\Ker A = \{0\}$ : aucun $X \neq 0$ ne vérifie $AX = 0$.`,
+        R`<b>Sens direct.</b> $AX = \lambda X$ ($X \neq 0$, $\lambda \neq 0$) ⟹ $X = \lambda A^{-1}X$ ⟹ $A^{-1}X = \frac1\lambda X$.`,
+        R`<b>Réciproque.</b> Même calcul en échangeant $A$ et $A^{-1}$ ; d'où $E_\lambda(A) = E_{1/\lambda}(A^{-1})$.`
+      ],
+      retenir: R`<p>Mêmes vecteurs propres, valeurs propres inversées.</p>`
+    },
+    derivation: {
+      but: R`<p>Éléments propres de la dérivation sur $\R_n[X]$ ; comparaison avec $C^\infty$.</p>`,
+      methode: R`<p>Comparer les <strong>degrés</strong> dans $P' = \lambda P$ ; ou écrire la matrice dans la base canonique (triangulaire).</p>`,
+      etapes: [
+        R`<b>Raisonnement par les degrés.</b> Soit $P \neq 0$ avec $P' = \lambda P$. Si $\lambda \neq 0$, $\deg(\lambda P) = \deg P$, alors que $P'$ est nul ou de degré $\deg P - 1$ : impossible. Donc $\lambda = 0$.`,
+        R`<b>$E_0$.</b> $P' = 0 \iff P$ constant : $E_0(\varphi) = \R_0[X]$, et $\Sp(\varphi) = \{0\}$.`,
+        R`<b>Avec la matrice.</b> $\varphi(X^k) = kX^{k-1}$ : la colonne $k$ n'a qu'un coefficient, au-dessus de la diagonale. La matrice est triangulaire supérieure stricte, sa diagonale est nulle : $\chi_\varphi = X^{n+1}$.`,
+        R`<b>Sur $C^\infty$.</b> $f(x) = e^{\lambda x}$ vérifie $f' = \lambda f$ pour tout $\lambda \in \R$ : tout réel est valeur propre. Ces fonctions ne sont pas des polynômes (sauf $\lambda = 0$).`
+      ],
+      retenir: R`<p>Le spectre dépend de l'espace sur lequel on travaille.</p>`
+    },
+    'derivation#1': {
+      but: R`<p>Éléments propres de $\psi : P \mapsto XP'$.</p>`,
+      methode: R`<p>Calculer l'image de la base canonique : si elle est formée de vecteurs propres, la matrice est diagonale.</p>`,
+      etapes: [
+        R`<b>Image de $X^k$.</b> $\psi(X^k) = X \cdot kX^{k-1} = kX^k$ : $X^k$ est vecteur propre pour $k$.`,
+        R`<b>Matrice.</b> Dans $(1, X, \dots, X^n)$ : $\mathrm{diag}(0, 1, \dots, n)$.`,
+        R`<b>Conclusion.</b> $n + 1$ valeurs propres distinctes $0, 1, \dots, n$ en dimension $n + 1$ : chaque sous-espace propre est une droite, $E_k(\psi) = \Vect(X^k)$.`
+      ],
+      retenir: R`<p>$n$ valeurs propres distinctes en dimension $n$ : sous-espaces propres de dimension 1.</p>`
+    },
+    'derivation#2': {
+      but: R`<p>Éléments propres de $\theta : P \mapsto P - P'$.</p>`,
+      methode: R`<p>Matrice dans la base canonique (triangulaire), puis noyau de $\theta - \Id$.</p>`,
+      etapes: [
+        R`<b>Image de $X^k$.</b> $\theta(X^k) = X^k - kX^{k-1}$ : coefficient 1 sur la diagonale, $-k$ juste au-dessus.`,
+        R`<b>Spectre.</b> Matrice triangulaire à diagonale de 1 : $\chi_\theta = (X - 1)^{n+1}$, $\Sp(\theta) = \{1\}$.`,
+        R`<b>Sous-espace propre.</b> $\theta(P) = P \iff P' = 0 \iff P$ constant : $E_1(\theta) = \R_0[X]$, de dimension 1 (bien moins que la multiplicité $n + 1$).`
+      ],
+      retenir: R`<p>Matrice triangulaire : les valeurs propres se lisent sur la diagonale.</p>`
+    },
+    transposee: {
+      but: R`<p>Comparer spectres et sous-espaces propres de $A$ et $A^T$.</p>`,
+      methode: R`<p>Le déterminant est invariant par transposition ; les sous-espaces propres se calculent séparément.</p>`,
+      etapes: [
+        R`<b>Même polynôme.</b> $XI_n - A^T = (XI_n - A)^T$ et $\det(M^T) = \det M$, donc $\chi_{A^T} = \chi_A$.`,
+        R`<b>Sous-espaces de $A$.</b> $A - I_2 = \begin{pmatrix} 0 & 1 \\ 0 & 1 \end{pmatrix}$ : $y = 0$, $E_1(A) = \Vect\big((1, 0)\big)$. $A - 2I_2 = \begin{pmatrix} -1 & 1 \\ 0 & 0 \end{pmatrix}$ : $y = x$, $E_2(A) = \Vect\big((1, 1)\big)$.`,
+        R`<b>Sous-espaces de $A^T$.</b> $A^T - I_2 = \begin{pmatrix} 0 & 0 \\ 1 & 1 \end{pmatrix}$ : $x + y = 0$, $E_1(A^T) = \Vect\big((1, -1)\big)$. $A^T - 2I_2 = \begin{pmatrix} -1 & 0 \\ 1 & 0 \end{pmatrix}$ : $x = 0$, $E_2(A^T) = \Vect\big((0, 1)\big)$.`,
+        R`<b>Conclusion.</b> Sous-espaces différents, mais de mêmes dimensions car $\rg(M^T) = \rg(M)$.`
+      ],
+      retenir: R`<p>$A$ et $A^T$ : même spectre, mêmes dimensions de sous-espaces propres, mais pas les mêmes sous-espaces.</p>`
+    },
+    'ab-ba': {
+      but: R`<p>Montrer que $AB$ et $BA$ ont le même spectre.</p>`,
+      methode: R`<p>Valeurs propres non nulles : transporter un vecteur propre de $AB$ par $B$. Valeur propre 0 : déterminant.</p>`,
+      etapes: [
+        R`<b>$BX \neq 0$.</b> Si $BX = 0$, alors $ABX = 0$ ; or $ABX = \lambda X$ avec $\lambda \neq 0$, donc $X = 0$ : absurde.`,
+        R`<b>$BX$ vecteur propre de $BA$.</b> $BA(BX) = B(ABX) = B(\lambda X) = \lambda BX$, et $BX \neq 0$.`,
+        R`<b>Valeur propre 0.</b> $0 \in \Sp(AB) \iff \det(AB) = 0 \iff \det A \det B = 0 \iff \det(BA) = 0 \iff 0 \in \Sp(BA)$.`,
+        R`<b>Conclusion.</b> Les valeurs propres non nulles de $AB$ sont valeurs propres de $BA$ et inversement (rôles symétriques) ; $0$ est commun ou absent des deux. Donc $\Sp(AB) = \Sp(BA)$.`
+      ],
+      retenir: R`<p>Traiter séparément $\lambda \neq 0$ (vecteurs propres) et $\lambda = 0$ (déterminant).</p>`
+    },
+    'lignes-constantes': {
+      but: R`<p>Montrer que la somme commune des lignes est valeur propre, et l'appliquer.</p>`,
+      methode: R`<p>Tester le vecteur $U = (1, \dots, 1)$ : $AU$ contient les sommes des lignes.</p>`,
+      etapes: [
+        R`<b>Calcul de $AU$.</b> La $i$-ème coordonnée de $AU$ est $\sum_j a_{ij} \times 1 = s$.`,
+        R`<b>Conclusion.</b> $AU = sU$ et $U \neq 0$ : $s \in \Sp(A)$ et $U$ est un vecteur propre associé.`,
+        R`<b>Application.</b> $2 + 1 + 4 = 3 + 3 + 1 = 0 + 5 + 2 = 7$ : $7$ est valeur propre, de vecteur propre $(1, 1, 1)$.`
+      ],
+      retenir: R`<p>Sommes des lignes constantes ⟹ $(1, \dots, 1)$ vecteur propre ; sommes des colonnes constantes ⟹ valeur propre de $A^T$, donc de $A$.</p>`
+    }
+  };
   L2.chapter('algebre3', 'vp', {
     intro: R`<p>Dans tout le chapitre, $\K$ désigne $\R$ ou $\C$, $E$ un $\K$-espace vectoriel et $u \in \Lin(E)$. L'objectif est de trouver les directions de $E$ que $u$ se contente de <em>dilater</em> : c'est la première étape de la réduction des endomorphismes, qui sera achevée au chapitre suivant (diagonalisation).</p>`,
-    cours, fiche, exercices, methodes, generateurs, plan, reperes
+    cours, fiche, exercices, methodes, generateurs, plan, reperes, details
   });
 })();

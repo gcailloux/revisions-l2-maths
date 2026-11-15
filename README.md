@@ -13,6 +13,10 @@ genre ») et **Fiches méthodes** (cas typiques et démarche de résolution).
   KaTeX (affichage des formules) est embarqué dans `vendor/katex`.
 - Ou bien lancer le petit serveur local : `powershell -ExecutionPolicy Bypass -File tools\serve.ps1`
   puis ouvrir http://localhost:8765/.
+- Vérifier le contenu d'un chapitre (développement) : dans la console du navigateur, sur le site local,
+  charger `tools/verif-contenu.js` puis lancer `await verifChapitre('probas', 'denombrement', 100)` :
+  erreurs de formules, valeurs indéfinies et corrections détaillées manquantes, y compris pour les
+  exercices générés.
 
 ## Hors ligne sur tablette
 
@@ -72,7 +76,11 @@ js/app.js                  routage et rendu
 - **Exercices** : `{ id, title, diff (1-3), enonce, indication, correction, gen, similaires }`.
   `gen` désigne un générateur du chapitre ; `similaires` est une liste de variantes rédigées
   (utilisée par le bouton « + Un exercice de ce genre » quand il n'y a pas de générateur).
-- **Générateurs** : `{ title, diff, make(rng) }` qui renvoie `{ enonce, indication, correction }`.
+- **Correction détaillée** (bouton « Correction détaillée ») : objet `{ but, methode, etapes: [...], retenir }`
+  (ou chaîne HTML). Pour un exercice rédigé, il se place dans le dictionnaire `details` du chapitre
+  (`details[id]`, `details[id + '#n']` pour la n-ième variante) ou dans le champ `detail` de l'exercice ;
+  un générateur le renvoie dans `detail`.
+- **Générateurs** : `{ title, diff, make(rng) }` qui renvoie `{ enonce, indication, correction, detail }`.
   `rng` est un générateur aléatoire à graine : un exercice généré est entièrement déterminé par sa graine.
 - Les formules s'écrivent en LaTeX entre `$...$` / `$$...$$` (utiliser ``String.raw`...` ``).
   Le code Python s'insère avec `L2.code(...)`.

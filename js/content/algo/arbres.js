@@ -277,6 +277,24 @@ fin fonction`
       make(r) {
         const a = arbreLettres(r, r.int(6, 9));
         return {
+          detail: (() => {
+            const sg = s => (s ? 'de racine ' + s.v : 'vide');
+            const part = (f, s) => (s ? seq(f(s)) : '(rien)');
+            return {
+              but: R`<p>Donner les trois parcours en profondeur, puis la taille, la hauteur et les feuilles.</p>`,
+              methode: R`<p>Définitions récursives : préfixe = racine, puis préfixe(gauche), puis préfixe(droit) ; infixe = infixe(gauche), racine, infixe(droit) ; postfixe = postfixe(gauche), postfixe(droit), racine. On applique la règle à la racine, puis à chaque sous-arbre.</p>`,
+              etapes: [
+                R`<b>Découpage.</b> Racine ${a.v} ; sous-arbre gauche ${sg(a.g)} ; sous-arbre droit ${sg(a.d)}.`,
+                R`<b>Préfixe.</b> ${a.v} | ${part(prefixe, a.g)} | ${part(prefixe, a.d)} → <b>${seq(prefixe(a))}</b>.`,
+                R`<b>Infixe.</b> ${part(infixe, a.g)} | ${a.v} | ${part(infixe, a.d)} → <b>${seq(infixe(a))}</b>.`,
+                R`<b>Postfixe.</b> ${part(postfixe, a.g)} | ${part(postfixe, a.d)} | ${a.v} → <b>${seq(postfixe(a))}</b>.`,
+                R`<b>Taille.</b> $1 + \text{taille(gauche)} + \text{taille(droit)} = 1 + ${taille(a.g)} + ${taille(a.d)} = ${taille(a)}$.`,
+                R`<b>Hauteur.</b> $1 + \max(${hauteur(a.g)}, ${hauteur(a.d)}) = ${hauteur(a)}$ (convention : un arbre vide a pour hauteur $-1$).`,
+                R`<b>Feuilles</b> (nœuds sans fils), dans l'ordre de gauche à droite : ${seq(feuilles(a))}.`
+              ],
+              retenir: R`<p>Contrôle rapide : le préfixe commence par la racine, le postfixe finit par la racine, et la racine coupe l'infixe en « gauche » et « droit ».</p>`
+            };
+          })(),
           enonce: R`<p>On considère l'arbre binaire suivant.</p>${fig([svgBin(a)])}<ol><li>Donner les parcours <b>préfixe</b>, <b>infixe</b> et <b>postfixe</b>.</li><li>Donner sa taille, sa hauteur et ses feuilles.</li></ol>`,
           indication: R`<p>Faire le tour de l'arbre en partant de la racine, le long du bord gauche : préfixe = 1<sup>er</sup> passage près d'un nœud, infixe = passage par-dessous, postfixe = dernier passage.</p>`,
           correction: R`<ul><li>Préfixe (racine, gauche, droit) : <b>${seq(prefixe(a))}</b></li>
@@ -297,6 +315,29 @@ fin fonction`
         if (present) v = r.pick(vals); else { do { v = r.int(10, 98); } while (vals.includes(v)); }
         const c = chercher(a, v);
         return {
+          detail: (() => {
+            const dir = (x, y) => (x < y ? 'gauche' : 'droite');
+            let t = null;
+            const pas = vals.map((x, k) => {
+              const ch = chercher(t, x).ch;
+              t = abrInserer(t, x);
+              if (!ch.length) return R`<b>${x}</b> devient la racine.`;
+              const last = ch[ch.length - 1];
+              return R`<b>${x}</b> : ${ch.map(y => y + (x < y ? ' ($' + x + ' \\lt ' + y + '$, gauche)' : ' ($' + x + ' \\gt ' + y + '$, droite)')).join(' → ')} → fils ${x < last ? 'gauche' : 'droit'} de ${last}.`;
+            });
+            const rc = c.ch.map((y, i) => (i === c.ch.length - 1 && c.trouve ? y + ' (trouvé)' : y + ' (' + dir(v, y) + ')')).join(' → ');
+            return {
+              but: R`<p>Construire l'ABR par insertions successives, puis lire hauteur, parcours infixe et chemin de recherche.</p>`,
+              methode: R`<p>Chaque valeur part de la racine et descend : à gauche si elle est plus petite que le nœud rencontré, à droite si elle est plus grande, jusqu'à une place vide.</p>`,
+              etapes: [
+                ...pas,
+                R`<b>Hauteur.</b> La branche la plus longue compte $${hauteur(a)}$ arêtes : hauteur $${hauteur(a)}$.`,
+                R`<b>Parcours infixe.</b> ${seq(infixe(a))} : la liste triée, comme dans tout ABR.`,
+                R`<b>Recherche de ${v}.</b> ${rc}${c.trouve ? '' : ' → sous-arbre vide'} : ${c.trouve ? 'recherche fructueuse' : v + ' est absent'}, ${c.ch.length} comparaison${c.ch.length > 1 ? 's' : ''} (au plus hauteur + 1 = ${hauteur(a) + 1}).`
+              ],
+              retenir: R`<p>Insertion et recherche suivent le même chemin depuis la racine : coût $O(h)$.</p>`
+            };
+          })(),
           enonce: R`<p>On insère successivement, dans un arbre binaire de recherche initialement vide, les valeurs : <b>${seq(vals)}</b>.</p><ol><li>Dessiner l'arbre obtenu. Quelle est sa hauteur ?</li><li>Donner son parcours infixe.</li><li>Quels nœuds sont visités par la recherche de $${v}$ ? Est-elle fructueuse ?</li></ol>`,
           indication: R`<p>Chaque valeur descend depuis la racine : à gauche si elle est plus petite, à droite si elle est plus grande, jusqu'à une place vide.</p>`,
           correction: R`${fig([svgBin(a, { hl: c.ch, label: 'ABR obtenu' }), 'ABR obtenu (en couleur : chemin de recherche de ' + v + ')'])}
@@ -327,6 +368,31 @@ fin fonction`
         else { const m = abrMin(n.d).v; expl = R`${cible} a <b>deux fils</b> : on le remplace par son <b>successeur</b> ${m} (le minimum de son sous-arbre droit, obtenu en descendant à droite une fois puis à gauche tant que possible), puis on supprime ${m} de ce sous-arbre droit (il a au plus un fils droit).`; }
         const apres = abrSupprimer(a, cible);
         return {
+          detail: (() => {
+            const ch = chercher(avant, cible).ch;
+            const nAv = trouverNoeud(avant, cible);
+            const fils = [nAv.g, nAv.d].filter(Boolean).map(f => f.v);
+            const steps = [
+              R`<b>Trouver le nœud.</b> Depuis la racine : ${ch.map((y, i) => (i === ch.length - 1 ? y : y + ' (' + (cible < y ? 'gauche' : 'droite') + ')')).join(' → ')}.`,
+              R`<b>Compter ses fils.</b> ${cible} a ${fils.length === 0 ? 'aucun fils : c’est une feuille' : fils.length === 1 ? 'un seul fils (' + fils[0] + ')' : 'deux fils (' + fils.join(' et ') + ')'}.`
+            ];
+            if (cas === 0) steps.push(R`<b>Cas 0 fils.</b> On retire simplement la feuille : le lien de son père vers elle devient NUL.`);
+            else if (cas === 1) steps.push(R`<b>Cas 1 fils.</b> Le fils ${fils[0]} prend la place de ${cible}, avec tout son sous-arbre. L'ordre est respecté : ce sous-arbre était déjà du bon côté de tous les ancêtres de ${cible}.`);
+            else {
+              const s = []; let q = nAv.d; s.push(q.v); while (q.g) { q = q.g; s.push(q.v); }
+              const m = s[s.length - 1];
+              steps.push(R`<b>Cas 2 fils : successeur.</b> Minimum du sous-arbre droit : une fois à droite, puis à gauche tant que possible : ${s.join(' → ')}. Le successeur est ${m}.`);
+              steps.push(R`<b>Remplacement.</b> On écrit ${m} à la place de ${cible}, puis on supprime ${m} du sous-arbre droit ; il n'a pas de fils gauche, donc c'est le cas 0 ou 1 fils.`);
+              steps.push(R`<b>Pourquoi l'ordre est respecté.</b> ${m} est plus grand que tout le sous-arbre gauche de ${cible} et plus petit que tout ce qui reste à droite.`);
+            }
+            steps.push(R`<b>Contrôle.</b> Parcours infixe après suppression : ${seq(infixe(apres))}, toujours trié.`);
+            return {
+              but: R`<p>Supprimer ${cible} de l'ABR en appliquant le bon cas de l'algorithme.</p>`,
+              methode: R`<p>Trois cas selon le nombre de fils du nœud : 0 → on le retire ; 1 → son fils remonte ; 2 → on le remplace par son successeur (minimum du sous-arbre droit), que l'on supprime ensuite.</p>`,
+              etapes: steps,
+              retenir: R`<p>Successeur : une fois à droite, puis tout à gauche ; il a au plus un fils (droit).</p>`
+            };
+          })(),
           enonce: R`<p>Dans l'arbre binaire de recherche ci-dessous, supprimer la valeur <b>${cible}</b> avec l'algorithme du cours. Dessiner l'arbre obtenu.</p>${fig([svgBin(avant, { del: [cible] })])}`,
           indication: R`<p>Combien de fils a le nœud ${cible} ? Trois cas : 0, 1 ou 2 fils.</p>`,
           correction: R`<p>${expl}</p>${fig([svgBin(apres), 'après suppression de ' + cible])}
@@ -347,6 +413,24 @@ fin fonction`
         const fils = [2 * i + 1, 2 * i + 2].filter(k => k < n);
         const p = Math.floor((j - 1) / 2);
         return {
+          detail: (() => {
+            const niveaux = [];
+            for (let k = 0; Math.pow(2, k) - 1 < n; k++) {
+              const a0 = Math.pow(2, k) - 1, a1 = Math.min(Math.pow(2, k + 1) - 2, n - 1);
+              niveaux.push(R`niveau ${k} : cases ${a0}${a1 > a0 ? ' à ' + a1 : ''} (${t.slice(a0, a1 + 1).join(', ')})`);
+            }
+            return {
+              but: R`<p>Retrouver l'arbre rangé dans le tableau, puis des fils, un père et la hauteur.</p>`,
+              methode: R`<p>Racine en case 0 ; fils de la case $i$ en cases $2i + 1$ et $2i + 2$ (s'ils sont $\lt n$) ; père de la case $i \ge 1$ en case $\lfloor (i-1)/2 \rfloor$. Le niveau $k$ occupe les cases $2^k - 1$ à $2^{k+1} - 2$.</p>`,
+              etapes: [
+                R`<b>Niveaux.</b> ${niveaux.join(' ; ')}.`,
+                R`<b>Fils de la case ${i}.</b> $2 \times ${i} + 1 = ${2 * i + 1}$ et $2 \times ${i} + 2 = ${2 * i + 2}$${2 * i + 2 >= n ? ' (cette case n’existe pas : $' + (2 * i + 2) + ' \\ge ' + n + '$)' : ''} : ${fils.map(k => 'case ' + k + ' (' + t[k] + ')').join(' et ')}.`,
+                R`<b>Père de la case ${j}.</b> $\lfloor (${j} - 1)/2 \rfloor = \lfloor ${(j - 1) / 2 === Math.floor((j - 1) / 2) ? (j - 1) / 2 : String((j - 1) / 2).replace('.', '{,}')} \rfloor = ${p}$ : valeur ${t[p]}.`,
+                R`<b>Hauteur.</b> La dernière case, $${n - 1}$, est au niveau $\lfloor\log_2 ${n}\rfloor = ${Math.floor(Math.log2(n))}$ (car $2^{${Math.floor(Math.log2(n))}} \le ${n} \lt 2^{${Math.floor(Math.log2(n)) + 1}}$) : hauteur ${Math.floor(Math.log2(n))}.`
+              ],
+              retenir: R`<p>Un tableau sans trou représente un arbre <b>complet</b> : hauteur $\lfloor\log_2 n\rfloor$, la plus petite possible.</p>`
+            };
+          })(),
           enonce: R`<p>Un arbre binaire est rangé dans le tableau <code>t = [${t.join(', ')}]</code> selon la convention du cours (racine en case $0$, fils de la case $i$ en cases $2i+1$ et $2i+2$).</p><ol><li>Dessiner l'arbre.</li><li>Quels sont les fils de la case $${i}$ (valeur ${t[i]}) ?</li><li>Quel est le père de la case $${j}$ (valeur ${t[j]}) ?</li><li>Quelle est la hauteur de l'arbre ?</li></ol>`,
           correction: R`${fig([svgBin(nodes[0], { index: true }), 'entre crochets : indice de la case'])}
             <p>2. Fils de la case $${i}$ : cases $${fils.join('$ et $')}$, soit ${fils.map(k => t[k]).join(' et ')}.</p>
@@ -362,6 +446,19 @@ fin fonction`
         const n = r.pick([7, 10, 15, 20, 31, 50, 100, 1000]);
         const h = r.int(2, 6);
         return {
+          detail: {
+            but: R`<p>Encadrer la hauteur d'un arbre binaire à $${n}$ nœuds et le nombre de nœuds d'un arbre de hauteur $${h}$.</p>`,
+            methode: R`<p>Au niveau $k$, il y a au plus $2^k$ nœuds (chaque nœud a au plus 2 fils) ; et au moins un nœud par niveau jusqu'à la hauteur.</p>`,
+            etapes: [
+              R`<b>Hauteur maximale.</b> Un seul nœud par niveau (arbre filiforme) : $${n}$ nœuds sur $${n}$ niveaux, hauteur $${n} - 1 = ${n - 1}$.`,
+              R`<b>Nœuds au plus.</b> Hauteur $h$ : au plus $1 + 2 + 4 + \dots + 2^h = 2^{h+1} - 1$ nœuds (somme géométrique).`,
+              R`<b>Hauteur minimale.</b> Il faut $${n} \le 2^{h+1} - 1$. Or $2^{${Math.floor(Math.log2(n))}} \le ${n} \lt 2^{${Math.floor(Math.log2(n)) + 1}}$ : la plus petite hauteur possible est $${Math.floor(Math.log2(n))} = \lfloor\log_2 ${n}\rfloor$, atteinte par un arbre complet.`,
+              R`<b>Hauteur $${h}$ : minimum de nœuds.</b> Un nœud par niveau, niveaux 0 à $${h}$ : $${h + 1}$ nœuds.`,
+              R`<b>Hauteur $${h}$ : maximum de nœuds.</b> Tous les niveaux pleins : $2^{${h + 1}} - 1 = ${Math.pow(2, h + 1) - 1}$ nœuds (arbre parfait).`,
+              R`<b>Conséquence.</b> Une recherche dans un ABR à $${n}$ nœuds visite au pire hauteur + 1 nœuds : entre $${Math.floor(Math.log2(n)) + 1}$ (arbre complet) et $${n}$ (arbre filiforme).`
+            ],
+            retenir: R`<p>$h + 1 \le n \le 2^{h+1} - 1$, soit $\lfloor\log_2 n\rfloor \le h \le n - 1$.</p>`
+          },
           enonce: R`<p>1. Quelles sont la plus petite et la plus grande hauteur possibles d'un arbre binaire à $${n}$ nœuds ?</p><p>2. Combien de nœuds peut avoir, au minimum et au maximum, un arbre binaire de hauteur $${h}$ ?</p>`,
           indication: R`<p>Au niveau $k$ (profondeur $k$), il y a au plus $2^k$ nœuds.</p>`,
           correction: R`<p>1. Maximum : $n - 1 = ${n - 1}$ (arbre « filiforme », un seul nœud par niveau). Minimum : $\lfloor \log_2 n \rfloor = ${Math.floor(Math.log2(n))}$, car un arbre de hauteur $h$ a au plus $2^{h+1} - 1$ nœuds, donc $${n} \le 2^{h+1} - 1$ impose $h \ge ${Math.floor(Math.log2(n))}$ (et c'est atteint par un arbre complet).</p>
@@ -496,7 +593,7 @@ fin fonction`
       enonce: R`<p>Pour l'arbre suivant, donner : la racine, les feuilles, les nœuds internes, le père de Y, les fils de T, la profondeur de V, la hauteur, la taille et le degré maximal.</p>${fig([svgGen(terminoArbre)])}`,
       correction: R`<ul><li>Racine : R. Feuilles : U, Y, W, X, Z. Nœuds internes : R, S, V, T.</li>
         <li>Père de Y : V. Fils de T : W, X, Z.</li>
-        <li>Profondeur de V : $2$. Hauteur : $3$ (chemin R–S–V–Y). Taille : $10$ nœuds (donc $9$ arêtes). Degré maximal : $3$ (nœud T).</li></ul>`
+        <li>Profondeur de V : $2$. Hauteur : $3$ (chemin R–S–V–Y). Taille : $9$ nœuds (donc $8$ arêtes). Degré maximal : $3$ (nœud T).</li></ul>`
     },
     {
       id: 'parcours', title: 'Les trois parcours en profondeur', diff: 1, gen: 'parcours',
@@ -738,8 +835,178 @@ fin fonction`) + R`<p>On ajoute un paramètre (la profondeur courante) transmis 
     { etape: 5, si: R`Un arbre complet ou équilibré`, alors: R`Hauteur <b>$\lfloor\log_2 n\rfloor$</b> : opérations en $\Theta(\log n)$.` }
   ];
 
+
+  /* ------------------------------------------------------------------ */
+  /* Corrections détaillées (bouton « Correction détaillée »)            */
+  /* ------------------------------------------------------------------ */
+  const details = {
+    termino: {
+      but: R`<p>Lire sur un dessin le vocabulaire des arbres : racine, feuilles, père, fils, profondeur, hauteur, taille, degré.</p>`,
+      methode: R`<p>Revenir aux définitions : la <b>profondeur</b> d'un nœud est le nombre d'arêtes entre la racine et lui ; la <b>hauteur</b> de l'arbre est la plus grande profondeur ; le <b>degré</b> d'un nœud est son nombre de fils.</p>`,
+      etapes: [
+        R`<b>Racine.</b> Le seul nœud sans père : R.`,
+        R`<b>Feuilles et nœuds internes.</b> Les nœuds sans fils sont U, Y, W, X, Z ; les autres (R, S, V, T) sont internes.`,
+        R`<b>Liens.</b> Y est relié à V, au-dessus de lui : le père de Y est V. Les fils de T sont W, X, Z.`,
+        R`<b>Profondeur de V.</b> Chemin R → S → V : 2 arêtes.`,
+        R`<b>Hauteur.</b> La feuille la plus profonde est Y (R → S → V → Y) : hauteur 3.`,
+        R`<b>Taille.</b> On compte les nœuds : R, S, T, U, V, Y, W, X, Z, soit 9. Chaque nœud sauf la racine est relié à son père par une arête : $9 - 1 = 8$ arêtes.`,
+        R`<b>Degré maximal.</b> T a 3 fils, les autres en ont au plus 2 : degré maximal 3.`
+      ],
+      retenir: R`<p>Un arbre à $n$ nœuds a toujours $n - 1$ arêtes.</p>`
+    },
+    parcours: {
+      but: R`<p>Donner les parcours préfixe, infixe, postfixe et en largeur d'un arbre binaire.</p>`,
+      methode: R`<p>Parcours en profondeur, définis récursivement : préfixe = racine, puis gauche, puis droit ; infixe = gauche, racine, droit ; postfixe = gauche, droit, racine. Largeur : niveau par niveau, de gauche à droite.</p>`,
+      etapes: [
+        R`<b>Structure.</b> Racine A ; sous-arbre gauche de racine B (fils D et E, E ayant un fils gauche G) ; sous-arbre droit de racine C (un seul fils, droit, F).`,
+        R`<b>Préfixe.</b> A ; puis préfixe du sous-arbre B : B, D, E, G ; puis préfixe du sous-arbre C : C, F. Résultat : <b>A, B, D, E, G, C, F</b>.`,
+        R`<b>Infixe.</b> Infixe du sous-arbre B : D, B, puis infixe de E (G, E), soit D, B, G, E ; puis A ; puis infixe de C (pas de fils gauche) : C, F. Résultat : <b>D, B, G, E, A, C, F</b>.`,
+        R`<b>Postfixe.</b> Sous-arbre B : D, G, E, B ; sous-arbre C : F, C ; puis A. Résultat : <b>D, G, E, B, F, C, A</b>.`,
+        R`<b>Largeur.</b> Niveau 0 : A ; niveau 1 : B, C ; niveau 2 : D, E, F ; niveau 3 : G. Résultat : <b>A, B, C, D, E, F, G</b>.`,
+        R`<b>Contrôles.</b> Le préfixe commence par la racine, le postfixe finit par la racine ; chaque parcours contient les 7 nœuds une seule fois.`
+      ],
+      retenir: R`<p>Préfixe, infixe, postfixe : seule change la position de la racine (avant, entre, après ses sous-arbres).</p>`
+    },
+    recursif: {
+      but: R`<p>Écrire trois fonctions récursives sur un arbre binaire et donner leur coût.</p>`,
+      methode: R`<p>Schéma commun : <b>cas de base</b> $a = \text{NUL}$ (arbre vide), puis on <b>combine</b> les résultats des deux sous-arbres avec l'information portée par la racine.</p>`,
+      etapes: [
+        R`<b>nb_feuilles.</b> Arbre vide : 0 feuille. Si $a$ n'a aucun fils, c'est une feuille : 1. Sinon, les feuilles de $a$ sont celles de ses deux sous-arbres : on additionne. Le test « feuille » est indispensable : sans lui, une feuille donnerait $0 + 0 = 0$.`,
+        R`<b>somme.</b> Arbre vide : 0. Sinon : valeur de la racine + somme du sous-arbre gauche + somme du sous-arbre droit.`,
+        R`<b>nb_un_fils.</b> On compte d'abord dans les sous-arbres, puis on ajoute 1 si $a$ a exactement un fils. « Exactement un des deux est vide » s'écrit $(\text{a.gauche} = \text{NUL}) \neq (\text{a.droit} = \text{NUL})$ : un « ou exclusif » entre deux booléens.`,
+        R`<b>Terminaison.</b> Chaque appel porte sur un sous-arbre strictement plus petit ; on finit par atteindre des arbres vides.`,
+        R`<b>Coût.</b> Il y a un appel par nœud et un par sous-arbre vide ($n + 1$ pour un arbre à $n$ nœuds), chacun en $O(1)$ hors appels récursifs : $\Theta(n)$.`
+      ],
+      retenir: R`<p>Fonction récursive sur un arbre : cas vide, puis combinaison « racine + gauche + droit ».</p>`
+    },
+    'recursif#1': {
+      but: R`<p>Compter les nœuds d'une profondeur $k$ donnée.</p>`,
+      methode: R`<p>Un nœud de profondeur $k$ dans $a$ est de profondeur $k - 1$ dans le sous-arbre (gauche ou droit) qui le contient.</p>`,
+      etapes: [
+        R`<b>Arbre vide.</b> Aucun nœud : 0.`,
+        R`<b>$k = 0$.</b> Seule la racine est à la profondeur 0 : 1.`,
+        R`<b>$k \ge 1$.</b> On cherche les nœuds de profondeur $k - 1$ dans chacun des deux sous-arbres et on additionne.`,
+        R`<b>Coût.</b> On ne descend que jusqu'à la profondeur $k$ : au plus le nombre de nœuds de profondeur $\le k$, donc $O(n)$.`
+      ],
+      retenir: R`<p>Passer un paramètre qui diminue à chaque descente (ici $k$).</p>`
+    },
+    'recursif#2': {
+      but: R`<p>Maximum d'un arbre binaire quelconque, puis d'un ABR.</p>`,
+      methode: R`<p>Sans propriété d'ordre, le maximum peut être n'importe où : il faut comparer la racine aux maxima des sous-arbres non vides.</p>`,
+      etapes: [
+        R`<b>Initialisation.</b> $m \leftarrow$ valeur de la racine (l'arbre est non vide).`,
+        R`<b>Sous-arbres.</b> Pour chaque sous-arbre non vide, $m \leftarrow \max(m, \text{maximum}(\text{sous-arbre}))$ ; on teste « non vide » car la fonction exige un arbre non vide.`,
+        R`<b>Coût.</b> Tous les nœuds sont visités : $\Theta(n)$.`,
+        R`<b>Dans un ABR.</b> Tout élément du sous-arbre droit est plus grand que la racine : le maximum est le nœud le plus à droite. On descend à droite tant que possible : $O(h)$.`
+      ],
+      retenir: R`<p>Exploiter l'ordre d'un ABR évite de parcourir tout l'arbre.</p>`
+    },
+    reconstruction: {
+      but: R`<p>Reconstruire un arbre binaire à partir de ses parcours préfixe et infixe.</p>`,
+      methode: R`<p>Le <b>premier élément du préfixe</b> est la racine ; dans l'<b>infixe</b>, elle sépare les éléments du sous-arbre gauche (avant) et du sous-arbre droit (après). On recommence sur chaque sous-arbre.</p>`,
+      etapes: [
+        R`<b>Racine.</b> Préfixe A, B, D, E, C, F : la racine est A.`,
+        R`<b>Découpage par l'infixe.</b> Infixe D, B, E, <b>A</b>, C, F : le sous-arbre gauche contient {D, B, E}, le droit {C, F}.`,
+        R`<b>Préfixes des sous-arbres.</b> Après A, le préfixe donne d'abord les 3 nœuds du sous-arbre gauche (B, D, E), puis les 2 du droit (C, F).`,
+        R`<b>Sous-arbre gauche.</b> Préfixe B, D, E → racine B ; infixe D, B, E → D à gauche de B, E à droite.`,
+        R`<b>Sous-arbre droit.</b> Préfixe C, F → racine C ; infixe C, F → rien à gauche de C, F à droite.`,
+        R`<b>Postfixe.</b> Gauche (D, E, B), droit (F, C), racine A : <b>D, E, B, F, C, A</b>.`,
+        R`<b>Le préfixe seul ne suffit pas.</b> A avec un fils gauche B, et A avec un fils droit B, ont le même préfixe A, B : il faut l'infixe pour savoir de quel côté se trouve B.`
+      ],
+      retenir: R`<p>Préfixe (ou postfixe) donne la racine, infixe donne le partage gauche / droite.</p>`
+    },
+    tableau: {
+      but: R`<p>Lire un arbre binaire complet rangé dans un tableau.</p>`,
+      methode: R`<p>Convention : racine en case 0 ; les fils de la case $i$ sont en cases $2i + 1$ et $2i + 2$ ; le père de la case $i \ge 1$ est en case $\lfloor (i - 1)/2 \rfloor$. Un fils d'indice $c$ n'existe que si $c \lt n$.</p>`,
+      etapes: [
+        R`<b>Niveaux.</b> Le niveau $k$ occupe les cases $2^k - 1$ à $2^{k+1} - 2$ : case 0 (valeur 8) ; cases 1, 2 (3, 10) ; cases 3 à 6 (1, 6, 14, 4).`,
+        R`<b>Liens.</b> Case 0 → cases 1, 2 ; case 1 → cases 3, 4 ; case 2 → cases 5, 6.`,
+        R`<b>Fils de la case 1</b> (valeur 3) : $2 \times 1 + 1 = 3$ et $2 \times 1 + 2 = 4$, valeurs 1 et 6.`,
+        R`<b>Père de la case 6</b> (valeur 4) : $\lfloor (6 - 1)/2 \rfloor = \lfloor 2{,}5 \rfloor = 2$, valeur 10.`,
+        R`<b>Fonctions.</b> gauche$(i) = 2i + 1$, droit$(i) = 2i + 2$, père$(i) = \lfloor (i-1)/2 \rfloor$ : des calculs en $O(1)$, sans pointeurs.`
+      ],
+      retenir: R`<p>Arbre complet ↔ tableau sans trou : c'est la représentation utilisée par les tas (tri par tas).</p>`
+    },
+    hauteurs: {
+      but: R`<p>Majorer le nombre de nœuds d'un arbre de hauteur $h$, en déduire l'encadrement de la hauteur d'un arbre à $n$ nœuds.</p>`,
+      methode: R`<p>Récurrence sur $h$ en décomposant l'arbre en racine + deux sous-arbres de hauteur $\le h - 1$.</p>`,
+      etapes: [
+        R`<b>Initialisation.</b> Hauteur 0 : un seul nœud, et $2^{0+1} - 1 = 1$.`,
+        R`<b>Hérédité.</b> Un arbre de hauteur $h \ge 1$ est une racine et deux sous-arbres de hauteur au plus $h - 1$, qui ont chacun au plus $2^h - 1$ nœuds : $n \le 1 + 2(2^h - 1) = 2^{h+1} - 1$.`,
+        R`<b>Hauteur minimale.</b> $n \le 2^{h+1} - 1 \lt 2^{h+1}$, donc $\log_2 n \lt h + 1$, soit $h \gt \log_2 n - 1$ ; $h$ étant entier, $h \ge \lfloor\log_2 n\rfloor$. C'est atteint par un arbre complet.`,
+        R`<b>Hauteur maximale.</b> Un nœud par niveau (arbre filiforme) : $h = n - 1$.`,
+        R`<b>Exemple.</b> $n = 1000$ : $2^9 = 512 \le 1000 \lt 1024 = 2^{10}$, donc $\lfloor\log_2 1000\rfloor = 9$ ; la hauteur est entre 9 et 999.`
+      ],
+      retenir: R`<p>$\lfloor\log_2 n\rfloor \le h \le n - 1$ : le coût $O(h)$ des ABR varie de $O(\log n)$ à $O(n)$.</p>`
+    },
+    'abr-insertion': {
+      but: R`<p>Construire un ABR par insertions successives, puis l'exploiter (hauteur, infixe, recherche).</p>`,
+      methode: R`<p>Chaque valeur part de la racine et descend : à gauche si elle est plus petite que le nœud, à droite si elle est plus grande, jusqu'à une place vide.</p>`,
+      etapes: [
+        R`<b>50</b> devient la racine. <b>30</b> $\lt 50$ : fils gauche de 50. <b>70</b> $\gt 50$ : fils droit de 50.`,
+        R`<b>20</b> : $\lt 50$ (gauche), $\lt 30$ (gauche) → fils gauche de 30. <b>40</b> : $\lt 50$, $\gt 30$ → fils droit de 30.`,
+        R`<b>60</b> : $\gt 50$, $\lt 70$ → fils gauche de 70. <b>80</b> : $\gt 50$, $\gt 70$ → fils droit de 70.`,
+        R`<b>35</b> : $\lt 50$, $\gt 30$, $\lt 40$ → fils gauche de 40.`,
+        R`<b>Hauteur.</b> La branche la plus longue est 50 → 30 → 40 → 35 : hauteur 3.`,
+        R`<b>Infixe.</b> 20, 30, 35, 40, 50, 60, 70, 80 : la liste triée (propriété caractéristique des ABR).`,
+        R`<b>Recherche de 45.</b> $45 \lt 50$ → gauche (30) ; $45 \gt 30$ → droite (40) ; $45 \gt 40$ → droite : sous-arbre vide. 45 est absent, après 3 comparaisons.`
+      ],
+      retenir: R`<p>Insertion et recherche suivent le même chemin ; leur coût est au plus hauteur + 1 comparaisons.</p>`
+    },
+    'abr-suppression': {
+      but: R`<p>Appliquer les trois cas de suppression dans un ABR.</p>`,
+      methode: R`<p>Selon le nombre de fils du nœud : 0 fils → on le retire ; 1 fils → le fils (avec son sous-arbre) prend sa place ; 2 fils → on le remplace par son <b>successeur</b> (minimum du sous-arbre droit), qu'on supprime ensuite.</p>`,
+      etapes: [
+        R`<b>Supprimer 20.</b> On le cherche : 50 → 30 → 20. C'est une feuille : le fils gauche de 30 devient vide.`,
+        R`<b>Supprimer 40.</b> Après le retrait de 20, 40 n'a qu'un fils (35, à gauche). On « remonte » 35 : il devient le fils droit de 30. Il reste bien plus grand que 30 et plus petit que 50.`,
+        R`<b>Supprimer 50 : successeur.</b> 50 a deux fils. Son successeur est le minimum du sous-arbre droit : on va une fois à droite (70), puis à gauche tant que possible (60).`,
+        R`<b>Remplacement.</b> On copie 60 dans la racine, puis on supprime 60 du sous-arbre droit ; c'est une feuille (un successeur n'a jamais de fils gauche).`,
+        R`<b>Pourquoi ça marche.</b> 60 est plus grand que tout le sous-arbre gauche (car il était à droite de 50) et plus petit que tout le reste du sous-arbre droit (c'en était le minimum).`,
+        R`<b>Contrôle.</b> Infixe final : 30, 35, 60, 70, 80, toujours trié.`
+      ],
+      retenir: R`<p>Cas à deux fils : successeur = une fois à droite, puis tout à gauche.</p>`
+    },
+    'est-abr': {
+      but: R`<p>Montrer qu'un test « local » ne suffit pas, puis tester correctement qu'un arbre est un ABR.</p>`,
+      methode: R`<p>La propriété d'ABR porte sur <b>tous les descendants</b>, pas seulement sur les fils : on transmet à chaque appel l'intervalle $]\text{inf}, \text{sup}[$ autorisé par les ancêtres.</p>`,
+      etapes: [
+        R`<b>Contre-exemple.</b> 50 a pour fils gauche 30, qui a pour fils droit 60. En chaque nœud, le test local passe ($30 \lt 50$, $60 \gt 30$).`,
+        R`<b>Pourquoi ce n'est pas un ABR.</b> 60 est dans le sous-arbre gauche de 50, il devrait être $\lt 50$. D'ailleurs une recherche de 60 irait à droite de 50 et échouerait.`,
+        R`<b>Idée du test.</b> Les valeurs du sous-arbre gauche de $a$ doivent être dans $]\text{inf}, a.\text{valeur}[$, celles du droit dans $]a.\text{valeur}, \text{sup}[$, où $\text{inf}$ et $\text{sup}$ viennent des ancêtres.`,
+        R`<b>Déroulé sur le contre-exemple.</b> est_ABR(50, $-\infty$, $+\infty$) → est_ABR(30, $-\infty$, 50) → est_ABR(60, 30, 50) : $60 \ge 50$, on renvoie faux.`,
+        R`<b>Coût.</b> Chaque nœud est examiné une fois : $\Theta(n)$. Variante équivalente : faire le parcours infixe et vérifier qu'il est strictement croissant.`
+      ],
+      retenir: R`<p>« Gauche $\lt$ racine $\lt$ droite » doit valoir pour des <b>sous-arbres</b> entiers, pas seulement pour les fils.</p>`
+    },
+    iteratif: {
+      but: R`<p>Dérouler le parcours infixe itératif (avec une pile) sur un ABR.</p>`,
+      methode: R`<p>Tant que possible, on descend à gauche en empilant les nœuds ; puis on dépile un nœud, on le traite, et on passe à son sous-arbre droit.</p>`,
+      etapes: [
+        R`<b>Descente initiale.</b> On empile 50, 30, 20 (descente à gauche) ; le fils gauche de 20 est vide. Pile : 50, 30, 20 (sommet à droite).`,
+        R`<b>Traiter 20.</b> On dépile 20 et on le traite ; son fils droit est vide. Pile : 50, 30.`,
+        R`<b>Traiter 30.</b> On dépile 30 ; on passe à son fils droit 40, on descend à gauche : on empile 40, 35. Pile : 50, 40, 35.`,
+        R`<b>Traiter 35 puis 40.</b> Dépiler 35 (pas de fils droit), pile 50, 40 ; dépiler 40 (pas de fils droit), pile 50.`,
+        R`<b>Traiter 50.</b> Pile vide ; on passe à 70 et on descend à gauche : on empile 70, 60.`,
+        R`<b>Fin.</b> Dépiler 60 (pile : 70), dépiler 70 (pile vide) ; son fils droit 80 est empilé puis dépilé et traité. La pile est vide et le nœud courant est NUL : arrêt.`,
+        R`<b>Bilan.</b> Ordre de traitement : 20, 30, 35, 40, 50, 60, 70, 80 (infixe, donc trié). La pile n'a jamais contenu plus de 3 nœuds ; en général, au plus hauteur + 1.`
+      ],
+      retenir: R`<p>La pile mémorise les ancêtres dont on n'a pas encore traité la racine et le sous-arbre droit.</p>`
+    },
+    'tri-abr': {
+      but: R`<p>Coût du tri par insertion dans un ABR suivie d'un parcours infixe.</p>`,
+      methode: R`<p>Le coût d'une insertion est la profondeur atteinte ; le coût total dépend donc de la <b>forme</b> de l'arbre construit.</p>`,
+      etapes: [
+        R`<b>Valeurs déjà triées.</b> Chaque nouvelle valeur est plus grande que toutes les précédentes : elle descend toujours à droite, au bout de la branche. La $i$-ème insertion fait $i - 1$ comparaisons.`,
+        R`<b>Somme.</b> $0 + 1 + \dots + (n-1) = \frac{n(n-1)}{2}$ : $\Theta(n^2)$, et l'arbre est filiforme.`,
+        R`<b>Meilleur cas.</b> Arbre équilibré : chaque insertion coûte au plus $\approx \log_2 n$, total $\Theta(n\log n)$.`,
+        R`<b>Parcours infixe.</b> $\Theta(n)$ dans tous les cas : il ne change pas l'ordre de grandeur.`,
+        R`<b>Ordre optimal pour 1..7.</b> On insère la médiane 4 (racine), puis les médianes des moitiés, 2 et 6, puis 1, 3, 5, 7 : on obtient un arbre parfait de hauteur $2 = \lfloor\log_2 7\rfloor$.`
+      ],
+      retenir: R`<p>Un ABR est efficace quand il est équilibré : $O(\log n)$ par opération, sinon jusqu'à $O(n)$.</p>`
+    }
+  };
   L2.chapter('algo', 'arbres', {
     intro: R`<p>Les arbres représentent des données hiérarchiques (dossiers, expressions, décisions…). On fixe le vocabulaire, on voit comment les stocker en mémoire, comment les parcourir (récursivement et itérativement), puis on étudie les <b>arbres binaires de recherche</b>, qui permettent de rechercher, insérer et supprimer en un temps proportionnel à la hauteur. Algorithmes en <b>pseudo-code</b>.</p>`,
-    cours, fiche, exercices, methodes, generateurs, plan, reperes
+    cours, fiche, exercices, methodes, generateurs, plan, reperes, details
   });
 })();

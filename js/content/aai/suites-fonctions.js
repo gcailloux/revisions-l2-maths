@@ -40,6 +40,27 @@
             cor += R`<p>Sur $[0,1]$ la limite simple est $f(x) = 0$ si $x < 1$ et $f(1) = 1$.</p><p><strong>Convergence uniforme ?</strong> Les $f_n$ sont continues mais $f$ ne l'est pas en $1$. Une limite uniforme de fonctions continues étant continue, <mark>la convergence n'est pas uniforme</mark> sur $[0,1]$.</p>`;
           }
           return {
+            detail: {
+              but: R`<p>Étudier la convergence simple puis uniforme de $f_n(x) = x^n$ sur $${Itex}$.</p>`,
+              methode: R`<p>Limite simple : $x$ fixé. Convergence uniforme : calculer $\sup_I |f_n - f|$ (grâce à la croissance de $x \mapsto x^n$), ou utiliser la continuité de la limite.</p>`,
+              etapes: [
+                R`<b>Limite simple.</b> Pour $0 \le x \lt 1$, $x^n \to 0$ (suite géométrique) ; pour $x = 1$, $x^n = 1$.`,
+                ...(I === '[0,a]' ? [
+                  R`<b>Limite sur $${Itex}$.</b> Tous les $x$ vérifient $x \le ${a.tex()} \lt 1$ : $f = 0$.`,
+                  R`<b>Sup.</b> $x \mapsto x^n$ est croissante sur $${Itex}$, donc $\|f_n - f\|_\infty = \left(${a.tex()}\right)^n$.`,
+                  R`<b>Conclusion.</b> $0 \le ${a.tex()} \lt 1$, donc $\left(${a.tex()}\right)^n \to 0$ : convergence uniforme.`
+                ] : I === '[0,1[' ? [
+                  R`<b>Limite sur $[0, 1[$.</b> $f = 0$, qui est continue : la continuité ne permet pas de conclure, il faut calculer le sup.`,
+                  R`<b>Sup.</b> $\sup_{[0,1[}x^n = 1$ : les valeurs approchent 1 quand $x \to 1$, sans l'atteindre.`,
+                  R`<b>Avec une suite.</b> $x_n = 1 - \frac1n \in [0, 1[$ et $f_n(x_n) = \left(1 - \frac1n\right)^n \to e^{-1} \neq 0$.`,
+                  R`<b>Conclusion.</b> $\|f_n - f\|_\infty = 1 \not\to 0$ : pas de convergence uniforme sur $[0, 1[$ (mais il y en a sur tout $[0, a]$ avec $a \lt 1$).`
+                ] : [
+                  R`<b>Limite sur $[0, 1]$.</b> $f(x) = 0$ pour $x \lt 1$ et $f(1) = 1$ : $f$ est discontinue en 1.`,
+                  R`<b>Théorème.</b> Une limite uniforme de fonctions continues est continue. Ici les $f_n$ sont continues et $f$ ne l'est pas : par contraposée, la convergence n'est pas uniforme.`
+                ])
+              ],
+              retenir: R`<p>$x^n$ converge uniformément sur $[0, a]$ pour tout $a \lt 1$, mais pas au voisinage de 1.</p>`
+            },
             enonce: R`<p>On pose $f_n(x) = x^n$ pour $x \in ${Itex}$. Étudier la convergence simple, puis la convergence uniforme de $(f_n)$ sur $${Itex}$.</p>`,
             indication: R`<p>Fixer $x$ pour la limite simple ; pour l'uniforme, calculer $\sup |f_n - f|$ grâce à la monotonie de $x \mapsto x^n$.</p>`,
             correction: cor
@@ -64,6 +85,20 @@
           else cor += R`<p>Cette quantité tend vers $${npowLim(supP) === '1' ? (isB ? R`\frac1e` : R`\frac12`) : R`+\infty`} \neq 0$ : <mark>pas de convergence uniforme</mark> sur $[0, +\infty[$.</p>
             <p><strong>Sur $[a, +\infty[$ ($a > 0$).</strong> Dès que $\frac1n \le a$, $f_n$ est décroissante sur $[a, +\infty[$, donc $\sup_{[a,+\infty[} |f_n| = f_n(a) \to 0$ : la convergence est uniforme sur $[a, +\infty[$. Le « pic » se déplace vers $0$ : c'est lui qui empêche l'uniformité.</p>`;
           return {
+            detail: {
+              but: R`<p>Étudier la convergence simple et uniforme de $f_n(x) = ${fx}$ sur $[0, +\infty[$.</p>`,
+              methode: R`<p>Limite simple à $x$ fixé ; puis $\|f_n - f\|_\infty$ par l'étude des variations (le maximum est atteint en $\frac1n$).</p>`,
+              etapes: [
+                R`<b>Limite simple.</b> $f_n(0) = 0$. Pour $x \gt 0$ fixé, ${isB ? R`$${npow(p) || '1'}\,e^{-nx} \to 0$ : l'exponentielle décroissante l'emporte sur toute puissance de $n$` : R`$n^2x^2$ domine au dénominateur, donc $f_n(x) \sim \frac{${npow(p) || '1'}\,x}{n^2x^2} = \frac{${npow(p) || '1'}}{n^2x} \to 0$`}. Donc $f = 0$.`,
+                R`<b>Dérivée.</b> ${deriv}.`,
+                R`<b>Variations.</b> $f_n'$ est du signe de ${isB ? '$1 - nx$' : '$1 - n^2x^2$'} : positive sur $[0, \frac1n]$, négative ensuite. Comme $f_n \ge 0$, son maximum est atteint en $\frac1n$.`,
+                R`<b>Norme infinie.</b> $\|f_n - f\|_\infty = ${supVal}$.`,
+                cvu ? R`<b>Conclusion.</b> Cette quantité tend vers 0 : convergence uniforme sur $[0, +\infty[$.`
+                  : R`<b>Conclusion.</b> Cette quantité ne tend pas vers 0 : pas de convergence uniforme sur $[0, +\infty[$. Le maximum se déplace vers 0 quand $n$ grandit.`,
+                ...(cvu ? [] : [R`<b>Sur $[a, +\infty[$ ($a \gt 0$).</b> Dès que $\frac1n \le a$, $f_n$ est décroissante sur $[a, +\infty[$, donc $\sup_{[a, +\infty[}|f_n| = f_n(a)$, qui tend vers 0 (limite simple en $a$) : convergence uniforme.`])
+              ],
+              retenir: R`<p>Pour $\|f_n - f\|_\infty$ : dériver, localiser le maximum, l'évaluer, puis étudier sa limite.</p>`
+            },
             enonce: R`<p>Pour $n \ge 1$ et $x \ge 0$, on pose $f_n(x) = ${fx}$. Étudier la convergence simple et la convergence uniforme de $(f_n)$ sur $[0, +\infty[$${cvu ? '' : R`, puis sur $[a, +\infty[$ avec $a > 0$`}.</p>`,
             indication: R`<p>Étudier les variations de $f_n$ : le maximum est atteint en $x = \frac1n$.</p>`,
             correction: cor
@@ -75,6 +110,18 @@
           const xm = k === 1 ? R`\frac{1}{\sqrt n}` : R`\frac1n`;
           const sup = k === 1 ? R`\dfrac{1}{2\sqrt n}` : R`\dfrac{1}{2n}`;
           return {
+            detail: {
+              but: R`<p>Montrer que $f_n(x) = \frac{x}{1 + ${nk}x^2}$ converge uniformément sur $\R$.</p>`,
+              methode: R`<p>Fonction impaire : on étudie $[0, +\infty[$ et on calcule le maximum ; ou l'on majore directement avec $a^2 + b^2 \ge 2ab$.</p>`,
+              etapes: [
+                R`<b>Limite simple.</b> $f_n(0) = 0$ ; pour $x \neq 0$, $f_n(x) \sim \frac{x}{${nk}x^2} = \frac{1}{${nk}x} \to 0$. Donc $f = 0$.`,
+                R`<b>Parité.</b> $f_n(-x) = -f_n(x)$ : $|f_n|$ est paire, il suffit d'étudier $[0, +\infty[$.`,
+                R`<b>Dérivée.</b> $f_n'(x) = \frac{(1 + ${nk}x^2) - 2${nk}x^2}{(1 + ${nk}x^2)^2} = \frac{1 - ${nk}x^2}{(1 + ${nk}x^2)^2}$, nulle en $x = ${xm}$ ; $f_n$ croît avant, décroît après.`,
+                R`<b>Maximum.</b> En $x = ${xm}$, $${nk}x^2 = 1$ : $f_n\!\left(${xm}\right) = \frac{${xm}}{2} = ${sup}$. Donc $\|f_n\|_\infty = ${sup} \to 0$ : convergence uniforme sur $\R$.`,
+                R`<b>Variante sans dérivée.</b> $1 + ${nk}x^2 \ge 2\sqrt{${nk}}\,|x|$ (inégalité $a^2 + b^2 \ge 2ab$ avec $a = 1$, $b = \sqrt{${nk}}\,|x|$), d'où $|f_n(x)| \le ${sup}$ pour tout $x$.`
+              ],
+              retenir: R`<p>Une majoration $|f_n(x) - f(x)| \le \varepsilon_n$ indépendante de $x$, avec $\varepsilon_n \to 0$, suffit.</p>`
+            },
             enonce: R`<p>On pose $f_n(x) = \dfrac{x}{1 + ${nk}x^2}$ pour $x \in \R$. Montrer que $(f_n)$ converge uniformément sur $\R$.</p>`,
             indication: R`<p>$f_n$ est impaire : étudier ses variations sur $[0, +\infty[$.</p>`,
             correction: R`<p><strong>Limite simple :</strong> $f_n(0) = 0$ et pour $x \neq 0$, $f_n(x) \sim \dfrac{1}{${nk}x} \to 0$. Donc $f = 0$.</p>
@@ -84,6 +131,19 @@
         }
         const a = r.pick([F(1, 2), F(1), F(2)]);
         return {
+          detail: {
+            but: R`<p>Convergence uniforme de $f_n(x) = \frac{\sin(nx)}{${npow(a)}}$ sur $\R$, et comportement des dérivées.</p>`,
+            methode: R`<p>Majoration indépendante de $x$ grâce à $|\sin| \le 1$ ; puis calcul de $f_n'$ en un point bien choisi.</p>`,
+            etapes: [
+              R`<b>Majoration.</b> $|\sin(nx)| \le 1$, donc $|f_n(x)| \le \frac{1}{${npow(a)}}$ pour tout $x \in \R$.`,
+              R`<b>Convergence uniforme.</b> La borne ne dépend pas de $x$ et tend vers 0 : $\|f_n\|_\infty \to 0$, convergence uniforme vers $f = 0$.`,
+              R`<b>Dérivées.</b> $f_n'(x) = \frac{n\cos(nx)}{${npow(a)}}$ ; en $x = 0$ : $f_n'(0) = \frac{n}{${npow(a)}}${a.isOne() ? ' = 1' : (a.cmp(1) < 0 ? R` = \sqrt n \to +\infty` : R` = \frac1n \to 0`)}$.`,
+              a.cmp(1) <= 0
+                ? R`<b>Conclusion.</b> $f_n'(0)$ ne tend pas vers $f'(0) = 0$ : les dérivées ne convergent pas vers $f'$. La convergence uniforme de $(f_n)$ ne dit rien de $(f_n')$.`
+                : R`<b>Conclusion.</b> Ici $|f_n'(x)| \le \frac{n}{n^2} = \frac1n$ : $(f_n')$ converge uniformément vers $0 = f'$, ce qui est cohérent avec le théorème de dérivation.`
+            ],
+            retenir: R`<p>Dériver fait apparaître un facteur $n$ qui peut détruire la convergence.</p>`
+          },
           enonce: R`<p>On pose $f_n(x) = \dfrac{\sin(nx)}{${npow(a)}}$ pour $x \in \R$. Étudier la convergence uniforme de $(f_n)$ sur $\R$. La suite $(f_n')$ converge-t-elle ?</p>`,
           correction: R`<p>$|f_n(x)| \le \dfrac{1}{${npow(a)}}$ pour tout $x$, et cette borne ne dépend pas de $x$ et tend vers $0$ : <mark>convergence uniforme vers $0$</mark> sur $\R$ (méthode de la majoration).</p>
             <p>$f_n'(x) = ${a.isOne() ? '' : R`\dfrac{n}{${npow(a)}}\,`}\cos(nx)$. En $x = 0$ : $f_n'(0) = ${a.isOne() ? '1' : (a.cmp(1) < 0 ? R`\sqrt n \to +\infty` : R`\frac1n \to 0`)}$. ${a.cmp(1) <= 0 ? R`La suite $(f_n')$ ne converge pas vers $0 = f'$ (et pas même simplement) : <b>la convergence uniforme de $(f_n)$ ne dit rien sur les dérivées</b>.` : R`Ici $\|f_n'\|_\infty = \frac1n \to 0$ : $(f_n')$ converge uniformément vers $0 = f'$, ce qui est cohérent avec le théorème de dérivation.`}</p>`
@@ -102,6 +162,21 @@
         const cvu = expS.sign() < 0;
         const supExpr = expS.isZero() ? R`\dfrac{1}{\sqrt{2e}}` : (expS.sign() < 0 ? R`\dfrac{1}{\sqrt{2e}\,${npow(expS.neg())}}` : R`\dfrac{${npow(expS)}}{\sqrt{2e}}`);
         return {
+          detail: {
+            but: R`<p>Comparer $\lim\int_0^1 f_n$ et $\int_0^1\lim f_n$ pour $f_n(x) = ${np}\,x\,e^{-nx^2}$, puis étudier la convergence uniforme.</p>`,
+            methode: R`<p>Limite simple (croissances comparées), intégrale exacte (primitive de $xe^{-nx^2}$), puis sup par l'étude des variations.</p>`,
+            etapes: [
+              R`<b>Limite simple.</b> $f_n(0) = 0$ ; pour $x \in\, ]0, 1]$, $e^{-nx^2}$ tend vers 0 plus vite que toute puissance de $n$ : $f_n(x) \to 0$. Donc $f = 0$ et $\int_0^1 f = 0$.`,
+              R`<b>Primitive.</b> $\frac{\dd}{\dd x}\left(-\frac{e^{-nx^2}}{2n}\right) = -\frac{-2nx\,e^{-nx^2}}{2n} = xe^{-nx^2}$.`,
+              R`<b>Intégrale.</b> $I_n = ${np}\left[-\frac{e^{-nx^2}}{2n}\right]_0^1 = \frac{${np || '1'}}{2n}\left(1 - e^{-n}\right)$.`,
+              R`<b>Limite de $I_n$.</b> $1 - e^{-n} \to 1$ et $\frac{${np || '1'}}{2n} = ${expI.isZero() ? R`\frac12` : R`\frac12\,n^{${expI.texSlash()}}`}$, donc $I_n \to ${limI}$.`,
+              R`<b>Comparaison.</b> ${limI === '0' ? R`$\lim I_n = 0 = \int_0^1 f$ : ici l'interversion est vraie.` : R`$\lim I_n = ${limI} \neq 0 = \int_0^1\lim f_n$ : on ne peut pas intervertir limite et intégrale.`}`,
+              R`<b>Dérivée.</b> $f_n'(x) = ${np}\,e^{-nx^2}(1 - 2nx^2)$, nulle en $x_n = \frac{1}{\sqrt{2n}} \in [0, 1]$, où $f_n \ge 0$ est maximale.`,
+              R`<b>Sup.</b> $f_n(x_n) = ${np}\,\frac{1}{\sqrt{2n}}\,e^{-1/2} = ${supExpr}$, qui ${cvu ? 'tend vers 0 : convergence uniforme.' : 'ne tend pas vers 0 : pas de convergence uniforme.'}`,
+              R`<b>Bilan.</b> ${cvu ? 'Convergence uniforme sur un segment, donc interversion autorisée : c’est cohérent.' : (limI === '0' ? 'Pas de convergence uniforme et pourtant l’interversion est vraie : la convergence uniforme est une condition suffisante, pas nécessaire.' : 'Pas de convergence uniforme et interversion fausse : cohérent avec le théorème.')}`
+            ],
+            retenir: R`<p>Sur un segment, convergence uniforme ⟹ $\int f_n \to \int f$. La réciproque est fausse.</p>`
+          },
           enonce: R`<p>Pour $x \in [0, 1]$, on pose $f_n(x) = ${np}\,x\,e^{-nx^2}$.</p><ol><li>Déterminer la limite simple $f$ de $(f_n)$ sur $[0,1]$.</li><li>Calculer $I_n = \int_0^1 f_n(x)\dd x$ et sa limite. Comparer avec $\int_0^1 f$.</li><li>La convergence est-elle uniforme sur $[0, 1]$ ?</li></ol>`,
           indication: R`<p>Une primitive de $x e^{-nx^2}$ est $-\dfrac{1}{2n}e^{-nx^2}$. Pour le sup, $f_n'$ s'annule en $x = \frac{1}{\sqrt{2n}}$.</p>`,
           correction: R`<p>1. $f_n(0) = 0$ ; pour $x \in\, ]0, 1]$, $${np || '1'}\,e^{-nx^2} \to 0$ (croissances comparées). Donc $f = 0$ et $\int_0^1 f = 0$.</p>
@@ -119,26 +194,66 @@
         const T = r.pick([
           {
             f: R`\left(1 + \dfrac{x}{n}\right)^n`, I: R`\R`,
+            det: [
+              R`<b>Se ramener au logarithme.</b> $x$ étant fixé, pour $n \gt |x|$ on a $1 + \frac xn \gt 0$, donc $f_n(x) = \exp\left(n\ln\left(1 + \frac xn\right)\right)$.`,
+              R`<b>Développement.</b> $u = \frac xn \to 0$ et $\ln(1 + u) = u + o(u)$ : $n\ln\left(1 + \frac xn\right) = x + o(1) \to x$.`,
+              R`<b>Limite.</b> L'exponentielle est continue : $f_n(x) \to e^x$, donc $f(x) = e^x$.`,
+              R`<b>Continuité.</b> $e^x$ est continue : la continuité de la limite ne permet aucune conclusion sur l'uniformité.`,
+              R`<b>Pas uniforme sur $\R$.</b> En $x_n = n$ : $f_n(n) = 2^n$ et $e^n - 2^n \to +\infty$, donc $\|f_n - f\|_\infty = +\infty$. (On montre en revanche la convergence uniforme sur tout segment $[-A, A]$.)`
+            ],
             cor: R`<p>Pour $x$ fixé et $n > |x|$ : $\ln f_n(x) = n\ln\left(1 + \frac xn\right) = n\left(\frac xn + o\left(\frac1n\right)\right) \to x$. Donc <b>$f(x) = e^x$</b>.</p><p>$f$ est continue : la continuité ne permet pas de conclure sur l'uniformité. (On montre que la convergence est uniforme sur tout segment $[-A, A]$, mais pas sur $\R$ : avec $x_n = n$, $f_n(x_n) = 2^n$ et $e^n - 2^n \to +\infty$.)</p>`
           },
           {
             f: R`\dfrac{nx}{1 + nx}`, I: R`[0, +\infty[`,
+            det: [
+              R`<b>Cas $x = 0$.</b> $f_n(0) = 0$ pour tout $n$ : la limite vaut 0.`,
+              R`<b>Cas $x \gt 0$.</b> On divise par $nx$ : $f_n(x) = \frac{1}{1 + \frac{1}{nx}}$, et $\frac{1}{nx} \to 0$, donc $f_n(x) \to 1$.`,
+              R`<b>Limite.</b> $f(0) = 0$ et $f(x) = 1$ pour $x \gt 0$ : $f$ est discontinue en 0.`,
+              R`<b>Conséquence.</b> Les $f_n$ sont continues ; une limite uniforme de fonctions continues serait continue : pas de convergence uniforme sur $[0, +\infty[$.`,
+              R`<b>Sur $[a, +\infty[$ ($a \gt 0$).</b> $|f_n(x) - 1| = \frac{1}{1 + nx} \le \frac{1}{1 + na} \to 0$, indépendamment de $x$ : convergence uniforme.`
+            ],
             cor: R`<p>$f_n(0) = 0$ ; pour $x > 0$, $f_n(x) = \dfrac{1}{1 + \frac{1}{nx}} \to 1$. Donc <b>$f(0) = 0$ et $f(x) = 1$ pour $x > 0$</b>.</p><p>$f$ est <mark>discontinue en $0$</mark> alors que les $f_n$ sont continues : <b>pas de convergence uniforme</b> sur $[0, +\infty[$. Sur $[a, +\infty[$ ($a > 0$) : $|f_n(x) - 1| = \frac{1}{1 + nx} \le \frac{1}{1 + na} \to 0$, convergence uniforme.</p>`
           },
           {
             f: R`\sqrt{x^2 + \tfrac1n}`, I: R`\R`,
+            det: [
+              R`<b>Limite simple.</b> $x^2 + \frac1n \to x^2$ et la racine est continue : $f_n(x) \to \sqrt{x^2} = |x|$.`,
+              R`<b>Continuité.</b> $|x|$ est continue : on ne peut pas conclure par la continuité, on estime l'écart.`,
+              R`<b>Quantité conjuguée.</b> $f_n(x) - |x| = \frac{1/n}{\sqrt{x^2 + 1/n} + |x|}$, et le dénominateur est $\ge \sqrt{1/n}$.`,
+              R`<b>Majoration uniforme.</b> $0 \le f_n(x) - |x| \le \frac{1/n}{\sqrt{1/n}} = \frac1{\sqrt n}$ pour tout $x$ : convergence uniforme sur $\R$.`,
+              R`<b>Remarque.</b> Les $f_n$ sont $C^\infty$ mais la limite n'est pas dérivable en 0 : la convergence uniforme ne transmet pas la dérivabilité.`
+            ],
             cor: R`<p>Par continuité de la racine, $f_n(x) \to \sqrt{x^2}$, soit <b>$f(x) = |x|$</b>.</p><p>De plus $0 \le f_n(x) - |x| = \dfrac{1/n}{\sqrt{x^2 + 1/n} + |x|} \le \dfrac{1/n}{\sqrt{1/n}} = \dfrac{1}{\sqrt n}$ : <mark>convergence uniforme</mark> sur $\R$. Pourtant les $f_n$ sont $C^\infty$ et la limite n'est pas dérivable en $0$.</p>`
           },
           {
             f: R`\dfrac{x^n}{1 + x^n}`, I: R`[0, +\infty[`,
+            det: [
+              R`<b>Cas $0 \le x \lt 1$.</b> $x^n \to 0$, donc $f_n(x) \to \frac{0}{1 + 0} = 0$.`,
+              R`<b>Cas $x = 1$.</b> $f_n(1) = \frac{1}{2}$ pour tout $n$.`,
+              R`<b>Cas $x \gt 1$.</b> On divise par $x^n$ : $f_n(x) = \frac{1}{x^{-n} + 1}$, et $x^{-n} = \left(\frac1x\right)^n \to 0$, donc $f_n(x) \to 1$.`,
+              R`<b>Limite.</b> $f = 0$ sur $[0, 1[$, $f(1) = \frac12$, $f = 1$ sur $]1, +\infty[$ : discontinue en 1.`,
+              R`<b>Conséquence.</b> Les $f_n$ étant continues, la convergence n'est pas uniforme sur $[0, +\infty[$ (ni sur aucun intervalle contenant 1).`
+            ],
             cor: R`<p>Si $0 \le x < 1$ : $x^n \to 0$, $f_n(x) \to 0$. Si $x = 1$ : $f_n(1) = \frac12$. Si $x > 1$ : $f_n(x) = \dfrac{1}{x^{-n} + 1} \to 1$.</p><p><b>$f = 0$ sur $[0,1[$, $f(1) = \frac12$, $f = 1$ sur $]1, +\infty[$</b> : $f$ est <mark>discontinue en $1$</mark>, donc pas de convergence uniforme sur $[0, +\infty[$.</p>`
           },
           {
             f: R`n\left(x^{1/n} - 1\right)`, I: R`]0, +\infty[`,
+            det: [
+              R`<b>Écriture exponentielle.</b> Pour $x \gt 0$ : $x^{1/n} = e^{\frac{\ln x}{n}}$.`,
+              R`<b>Développement.</b> $u = \frac{\ln x}{n} \to 0$ et $e^u = 1 + u + o(u)$ : $x^{1/n} - 1 = \frac{\ln x}{n} + o\left(\frac1n\right)$.`,
+              R`<b>Limite.</b> En multipliant par $n$ : $f_n(x) = \ln x + o(1) \to \ln x$.`,
+              R`<b>Continuité.</b> $\ln$ est continue sur $]0, +\infty[$ : la continuité ne permet aucune conclusion. (On montre la convergence uniforme sur tout segment $[a, b] \subset\, ]0, +\infty[$.)`
+            ],
             cor: R`<p>$x^{1/n} = e^{\frac{\ln x}{n}} = 1 + \frac{\ln x}{n} + o\left(\frac1n\right)$, donc <b>$f_n(x) \to \ln x$</b>.</p><p>$\ln$ est continue : on ne peut rien conclure par la continuité. (La convergence est uniforme sur tout segment $[a, b] \subset\, ]0, +\infty[$.)</p>`
           }
         ]);
         return {
+          detail: {
+            but: R`<p>Déterminer la limite simple de $f_n(x) = ${T.f}$ sur $${T.I}$ et ce que dit sa continuité.</p>`,
+            methode: R`<p>Fixer $x$ et étudier la suite numérique $(f_n(x))_n$, en distinguant des cas si besoin. Si la limite est discontinue alors que les $f_n$ sont continues, la convergence n'est pas uniforme ; si elle est continue, on ne peut rien conclure ainsi.</p>`,
+            etapes: T.det,
+            retenir: R`<p>Limite discontinue ⟹ pas de convergence uniforme sur l'intervalle ; limite continue ⟹ aucune conclusion, il faut étudier le sup.</p>`
+          },
           enonce: R`<p>Déterminer la limite simple de la suite de fonctions $f_n(x) = ${T.f}$ sur $${T.I}$. La limite est-elle continue ? Que peut-on en déduire ?</p>`,
           indication: R`<p>Fixer $x$ et étudier la suite numérique $(f_n(x))_n$ ; distinguer des cas selon $x$ si besoin.</p>`,
           correction: T.cor
@@ -470,8 +585,128 @@ for n in [1, 10, 100, 1000]:
     { etape: 5, si: R`Montrer que la limite est $C^1$`, alors: R`Étudier la <b>CVU des dérivées $f_n'$</b>, pas celle des $f_n$.` }
   ];
 
+
+  /* ------------------------------------------------------------------ */
+  /* Corrections détaillées (bouton « Correction détaillée »)            */
+  /* ------------------------------------------------------------------ */
+  const details = {
+    puissances: {
+      but: R`<p>Étudier la convergence simple puis uniforme de $f_n(x) = x^n$ sur trois intervalles.</p>`,
+      methode: R`<p>Convergence simple : on fixe $x$ et on étudie la suite numérique $(f_n(x))$. Convergence uniforme : $\|f_n - f\|_\infty = \sup_I |f_n - f| \to 0$ ? On calcule ce sup (variations), ou l'on utilise la continuité de la limite.</p>`,
+      etapes: [
+        R`<b>Limite simple.</b> Pour $0 \le x \lt 1$, $x^n \to 0$ (suite géométrique de raison $\lt 1$) ; pour $x = 1$, $1^n = 1$. Donc $f(x) = 0$ si $x \lt 1$ et $f(1) = 1$.`,
+        R`<b>Sur $[0, 1]$.</b> Les $f_n$ sont continues mais $f$ est discontinue en 1. Or une limite <b>uniforme</b> de fonctions continues est continue : par contraposée, la convergence n'est pas uniforme.`,
+        R`<b>Sur $[0, 1[$ : la limite est continue.</b> $f = 0$ est continue, l'argument précédent ne conclut pas : il faut calculer le sup.`,
+        R`<b>Sur $[0, 1[$ : le sup.</b> $\sup_{[0,1[}|x^n - 0| = \sup_{[0,1[}x^n = 1$ (pas atteint, mais $x^n \to 1$ quand $x \to 1$). Donc $\|f_n - f\|_\infty = 1 \not\to 0$ : pas de convergence uniforme. Avec une suite : $x_n = 1 - \frac1n$ donne $f_n(x_n) = (1 - \frac1n)^n \to e^{-1} \neq 0$.`,
+        R`<b>Sur $[0, \frac12]$.</b> $x \mapsto x^n$ est croissante, donc $\sup_{[0,1/2]}x^n = \frac1{2^n} \to 0$ : convergence uniforme.`
+      ],
+      retenir: R`<p>Pour <b>nier</b> la convergence uniforme : limite discontinue, ou une suite $(x_n)$ avec $|f_n(x_n) - f(x_n)| \not\to 0$. Pour la <b>prouver</b> : majorer $|f_n(x) - f(x)|$ par un $\varepsilon_n \to 0$ indépendant de $x$.</p>`
+    },
+    bosse: {
+      but: R`<p>Étudier $f_n(x) = \frac{nx}{1 + n^2x^2}$ : limite simple, norme infinie, convergence uniforme sur $[0, +\infty[$ et sur $[a, +\infty[$.</p>`,
+      methode: R`<p>Calculer $\|f_n\|_\infty$ par l'étude des variations ; puis remarquer que le maximum (la « bosse ») se déplace vers 0.</p>`,
+      etapes: [
+        R`<b>Limite simple.</b> $f_n(0) = 0$. Pour $x \gt 0$ fixé, $n^2x^2$ domine au dénominateur : $f_n(x) \sim \frac{nx}{n^2x^2} = \frac1{nx} \to 0$. Donc $f = 0$.`,
+        R`<b>Dérivée.</b> Avec $u = nx$ et $v = 1 + n^2x^2$ : $u'v - uv' = n(1 + n^2x^2) - nx \cdot 2n^2x = n(1 - n^2x^2)$, d'où $f_n'(x) = \frac{n(1 - n^2x^2)}{(1 + n^2x^2)^2}$.`,
+        R`<b>Variations.</b> $f_n' \gt 0$ sur $[0, \frac1n[$ et $\lt 0$ après : maximum en $x = \frac1n$, où $f_n(\frac1n) = \frac{1}{1 + 1} = \frac12$. Comme $f_n \ge 0$, $\|f_n\|_\infty = \frac12$.`,
+        R`<b>Conclusion sur $[0, +\infty[$.</b> $\|f_n - 0\|_\infty = \frac12 \not\to 0$ : pas de convergence uniforme.`,
+        R`<b>Sur $[a, +\infty[$.</b> Dès que $\frac1n \le a$ (soit $n \ge \frac1a$), $f_n$ est décroissante sur $[a, +\infty[$ : $\sup = f_n(a) = \frac{na}{1 + n^2a^2} \le \frac{na}{n^2a^2} = \frac1{na} \to 0$. Convergence uniforme.`
+      ],
+      retenir: R`<p>Une bosse de hauteur fixe qui glisse vers un point empêche la convergence uniforme au voisinage de ce point seulement.</p>`
+    },
+    interversion: {
+      but: R`<p>Comparer $\lim\int_0^1 f_n$ et $\int_0^1\lim f_n$ pour $f_n(x) = nx(1 - x^2)^n$.</p>`,
+      methode: R`<p>Calculer la limite simple, puis l'intégrale exactement (primitive). Si les deux résultats diffèrent, la convergence ne peut pas être uniforme (théorème d'intégration sur un segment).</p>`,
+      etapes: [
+        R`<b>Limite simple.</b> $f_n(0) = 0$. Pour $x \in ]0, 1]$, $q = 1 - x^2 \in [0, 1[$ et $nq^n \to 0$ (croissances comparées), donc $f_n(x) = x \cdot nq^n \to 0$ : $f = 0$, et $\int_0^1 f = 0$.`,
+        R`<b>Vérifier la primitive.</b> $\frac{\dd}{\dd x}\left(-\frac{(1 - x^2)^{n+1}}{2(n+1)}\right) = -\frac{(n+1)(1 - x^2)^n(-2x)}{2(n+1)} = x(1 - x^2)^n$.`,
+        R`<b>Intégrale.</b> $\int_0^1 f_n = n\left[-\frac{(1 - x^2)^{n+1}}{2(n+1)}\right]_0^1 = n\left(0 + \frac{1}{2(n+1)}\right) = \frac{n}{2(n+1)} \to \frac12$.`,
+        R`<b>Comparaison.</b> $\lim\int_0^1 f_n = \frac12 \neq 0 = \int_0^1\lim f_n$.`,
+        R`<b>Conclusion.</b> Si la convergence était uniforme sur le segment $[0, 1]$, on aurait $\int_0^1 f_n \to \int_0^1 f = 0$. Par contraposée, elle n'est pas uniforme.`
+      ],
+      retenir: R`<p>Convergence uniforme sur un segment ⟹ on peut intervertir limite et intégrale (condition suffisante, pas nécessaire).</p>`
+    },
+    racine: {
+      but: R`<p>Montrer que $\sqrt{x^2 + \frac1n}$ converge uniformément vers $|x|$, et voir que la dérivabilité ne passe pas à la limite.</p>`,
+      methode: R`<p>Quantité conjuguée pour majorer $|f_n(x) - |x||$ indépendamment de $x$.</p>`,
+      etapes: [
+        R`<b>Limite simple.</b> $x^2 + \frac1n \to x^2$ et la racine est continue : $f_n(x) \to \sqrt{x^2} = |x|$.`,
+        R`<b>Quantité conjuguée.</b> $f_n(x) - |x| = \frac{(x^2 + \frac1n) - x^2}{\sqrt{x^2 + \frac1n} + |x|} = \frac{1/n}{\sqrt{x^2 + \frac1n} + |x|} \ge 0$.`,
+        R`<b>Majoration uniforme.</b> Le dénominateur est $\ge \sqrt{1/n}$ (car $|x| \ge 0$ et $\sqrt{x^2 + 1/n} \ge \sqrt{1/n}$). Donc $0 \le f_n(x) - |x| \le \frac{1/n}{\sqrt{1/n}} = \frac{1}{\sqrt n}$, pour tout $x$ : $\|f_n - f\|_\infty \le \frac1{\sqrt n} \to 0$, convergence uniforme.`,
+        R`<b>Dérivabilité.</b> Chaque $f_n$ est $C^\infty$, mais $|x|$ n'est pas dérivable en 0 : la convergence uniforme ne transmet pas la dérivabilité.`,
+        R`<b>Pourquoi le théorème ne s'applique pas.</b> Il exige la convergence uniforme des <b>dérivées</b>. Or $f_n'(x) = \frac{x}{\sqrt{x^2 + 1/n}}$ tend vers $-1$, $0$ ou $1$ selon le signe de $x$ : limite discontinue de fonctions continues, donc pas uniforme.`
+      ],
+      retenir: R`<p>Pour dériver une limite : convergence (simple) des $f_n$ <b>et</b> convergence uniforme des $f_n'$.</p>`
+    },
+    'racine#1': {
+      but: R`<p>Exemple où $(f_n)$ converge uniformément mais pas $(f_n')$.</p>`,
+      methode: R`<p>Majoration indépendante de $x$ pour $(f_n)$ ; un point bien choisi pour $(f_n')$.</p>`,
+      etapes: [
+        R`<b>Convergence uniforme.</b> $|f_n(x)| = \frac{|\sin(nx)|}{n} \le \frac1n$ pour tout $x$ : $\|f_n\|_\infty \le \frac1n \to 0$.`,
+        R`<b>Dérivées.</b> $f_n'(x) = \frac{n\cos(nx)}{n} = \cos(nx)$.`,
+        R`<b>Un point où ça diverge.</b> En $x = \pi$ : $\cos(n\pi) = (-1)^n$, suite qui ne converge pas. Donc $(f_n')$ ne converge même pas simplement.`
+      ],
+      retenir: R`<p>Des fonctions petites peuvent osciller très vite : leurs dérivées ne sont pas contrôlées.</p>`
+    },
+    sinus: {
+      but: R`<p>Montrer que $n\sin\frac xn$ converge uniformément sur tout segment, mais pas sur $\R$.</p>`,
+      methode: R`<p>Majorer l'écart grâce à l'inégalité $|\sin t - t| \le \frac{|t|^3}{6}$ (borne qui dépend de $x$, mais uniforme sur un segment) ; pour $\R$, exhiber une suite $(x_n)$.</p>`,
+      etapes: [
+        R`<b>Limite simple.</b> Pour $x$ fixé, $t = \frac xn \to 0$ et $\sin t \sim t$ (si $x \neq 0$), donc $n\sin\frac xn \to x$ ; en $x = 0$ tout vaut 0. $f(x) = x$.`,
+        R`<b>Écart.</b> Avec $t = \frac xn$ : $|f_n(x) - x| = n\left|\sin\frac xn - \frac xn\right| \le n \cdot \frac{|x|^3}{6n^3} = \frac{|x|^3}{6n^2}$.`,
+        R`<b>Sur $[-A, A]$.</b> $|x| \le A$, donc $|f_n(x) - x| \le \frac{A^3}{6n^2}$, indépendant de $x$ et de limite 0 : convergence uniforme.`,
+        R`<b>Sur $\R$.</b> Avec $x_n = \frac{n\pi}{2}$ : $f_n(x_n) = n\sin\frac\pi2 = n$, alors que $f(x_n) = \frac{n\pi}{2}$. L'écart $n\left(\frac\pi2 - 1\right) \to +\infty$, donc $\|f_n - f\|_\infty = +\infty$ : pas de convergence uniforme.`
+      ],
+      retenir: R`<p>« Uniforme sur tout segment » n'implique pas « uniforme sur $\R$ ».</p>`
+    },
+    bornee: {
+      but: R`<p>Montrer qu'une limite uniforme de fonctions bornées est bornée, et que c'est faux avec la convergence simple.</p>`,
+      methode: R`<p>Utiliser la définition de la convergence uniforme avec un $\varepsilon$ fixé (par exemple 1), puis l'inégalité triangulaire.</p>`,
+      etapes: [
+        R`<b>Choix de $N$.</b> Convergence uniforme avec $\varepsilon = 1$ : il existe $N$ tel que $|f_N(x) - f(x)| \le 1$ pour tout $x \in I$.`,
+        R`<b>$f_N$ est bornée.</b> Il existe $M$ tel que $|f_N(x)| \le M$ pour tout $x$.`,
+        R`<b>Inégalité triangulaire.</b> $|f(x)| \le |f(x) - f_N(x)| + |f_N(x)| \le 1 + M$ pour tout $x$ : $f$ est bornée.`,
+        R`<b>Contre-exemple (convergence simple).</b> $f_n(x) = \min\left(n, \frac1x\right)$ sur $]0, 1]$ est bornée par $n$. Pour $x$ fixé, dès que $n \ge \frac1x$, $f_n(x) = \frac1x$ : la limite simple est $\frac1x$, non bornée.`
+      ],
+      retenir: R`<p>La convergence uniforme transmet : continuité, caractère borné, intégrale sur un segment. La convergence simple, en général, non.</p>`
+    },
+    'bornee#1': {
+      but: R`<p>Montrer que le produit de deux suites uniformément convergentes ne converge pas forcément uniformément.</p>`,
+      methode: R`<p>Calculer l'écart du produit à sa limite, puis le tester sur une suite $x_n \to +\infty$.</p>`,
+      etapes: [
+        R`<b>$(f_n)$ et $(g_n)$.</b> $|f_n(x) - x| = \frac1n$ pour tout $x$ : convergence uniforme vers $x$. $(g_n)$ est constante égale à $x$ : convergence uniforme triviale.`,
+        R`<b>Produit.</b> $f_n(x)g_n(x) = x^2 + \frac xn$, de limite simple $x^2$ ; l'écart vaut $\frac{x}{n}$.`,
+        R`<b>Pas d'uniformité.</b> En $x_n = n$, l'écart vaut 1 : $\|f_ng_n - x^2\|_\infty \ge 1$ ne tend pas vers 0.`,
+        R`<b>La raison.</b> Les limites ($x \mapsto x$) ne sont pas bornées sur $\R$ ; si elles l'étaient, le produit convergerait uniformément.`
+      ],
+      retenir: R`<p>Produit de suites uniformément convergentes : il faut des limites bornées pour conclure.</p>`
+    },
+    'bornee#2': {
+      but: R`<p>Montrer qu'une limite simple de fonctions $k$-lipschitziennes est $k$-lipschitzienne.</p>`,
+      methode: R`<p>Écrire l'inégalité pour chaque $n$, à $x$ et $y$ fixés, puis passer à la limite (les inégalités larges passent à la limite).</p>`,
+      etapes: [
+        R`<b>Pour chaque $n$.</b> $|f_n(x) - f_n(y)| \le k|x - y|$, pour tous $x, y \in I$.`,
+        R`<b>Passage à la limite.</b> À $x$, $y$ fixés, $f_n(x) \to f(x)$ et $f_n(y) \to f(y)$ ; la valeur absolue est continue, donc $|f_n(x) - f_n(y)| \to |f(x) - f(y)|$.`,
+        R`<b>Conclusion.</b> L'inégalité large passe à la limite : $|f(x) - f(y)| \le k|x - y|$.`
+      ],
+      retenir: R`<p>Une propriété « ponctuelle » par inégalités larges passe à la limite simple, sans besoin d'uniformité.</p>`
+    },
+    python: {
+      but: R`<p>Conjecturer numériquement le comportement de $\|f_n\|_\infty$ pour $f_n(x) = x^n(1 - x)$, puis le démontrer.</p>`,
+      methode: R`<p>Estimer le sup sur une grille fine (Python), puis calculer le vrai sup par l'étude des variations.</p>`,
+      etapes: [
+        R`<b>La fonction Python.</b> On évalue $|g|$ aux $N + 1$ points $a + k\frac{b - a}{N}$ ($k = 0, \dots, N$) et on garde le maximum : c'est une <b>minoration</b> du vrai sup, d'autant meilleure que $N$ est grand.`,
+        R`<b>Valeurs obtenues.</b> Environ $0{,}25$ ; $0{,}035$ ; $0{,}0037$ ; $0{,}00037$ pour $n = 1, 10, 100, 1000$ : divisées par 10 quand $n$ est multiplié par 10, ce qui suggère $\|f_n\|_\infty \approx \frac{C}{n} \to 0$.`,
+        R`<b>Limite simple.</b> $x^n \to 0$ pour $x \lt 1$, et $f_n(1) = 0$ : $f = 0$.`,
+        R`<b>Dérivée.</b> $f_n(x) = x^n - x^{n+1}$, donc $f_n'(x) = nx^{n-1} - (n+1)x^n = x^{n-1}\big(n - (n+1)x\big)$, nulle en $x_n = \frac{n}{n+1}$. $f_n \ge 0$ croît sur $[0, x_n]$ puis décroît.`,
+        R`<b>Sup.</b> $\|f_n\|_\infty = f_n(x_n) = \left(\frac{n}{n+1}\right)^n\left(1 - \frac{n}{n+1}\right) = \left(\frac{n}{n+1}\right)^n\frac{1}{n+1} \le \frac1{n+1} \to 0$ : convergence uniforme.`,
+        R`<b>Précision.</b> $\left(\frac{n}{n+1}\right)^n = \left(1 + \frac1n\right)^{-n} \to e^{-1}$, donc $\|f_n\|_\infty \sim \frac{1}{en}$ ; pour $n = 1000$ : $\frac{1}{1000e} \approx 0{,}000368$, comme l'indiquait Python.`
+      ],
+      retenir: R`<p>Le calcul numérique suggère, la preuve (calcul exact du sup) démontre.</p>`
+    }
+  };
   L2.chapter('aai', 'suites-fonctions', {
     intro: R`<p>Une suite de fonctions $(f_n)$ peut converger « point par point » (convergence <strong>simple</strong>) ou « globalement » (convergence <strong>uniforme</strong>). Seule la seconde transmet la continuité à la limite et permet de permuter limite et intégrale. Ces notions sont à la base de l'approximation des fonctions par ordinateur.</p>`,
-    cours, fiche, exercices, methodes, generateurs, plan, reperes
+    cours, fiche, exercices, methodes, generateurs, plan, reperes, details
   });
 })();

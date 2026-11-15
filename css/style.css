@@ -297,6 +297,18 @@ pre.pseudo .tk-kw { font-weight: 700; }
 .exo-ind, .exo-cor { margin-top: 12px; border-radius: 8px; padding: 12px 16px; font-family: var(--font-text); font-size: var(--text-size); overflow-x: auto; }
 .exo-ind { background: var(--review-bg); }
 .exo-cor { background: var(--ex-bg); border-left: 4px solid var(--ex); }
+/* Correction détaillée : méthode, étapes numérotées, à retenir */
+.exo-det { margin-top: 12px; border-radius: 8px; padding: 12px 16px; font-family: var(--font-text); font-size: var(--text-size); overflow-x: auto;
+  background: color-mix(in srgb, var(--sc) 7%, var(--panel)); border-left: 4px solid var(--sc); }
+.det-sec { margin: 8px 0 12px; }
+.det-h { display: block; font-family: var(--font-ui); font-weight: 700; font-size: 14px; color: var(--sc-ink); margin-bottom: 4px; }
+.det-sec > p:first-of-type { margin-top: 0; }
+ol.det-steps { margin: 4px 0; padding-left: 1.6em; }
+ol.det-steps > li { margin: 0 0 10px; padding-left: 4px; }
+ol.det-steps > li::marker { font-family: var(--font-ui); font-weight: 700; color: var(--sc-ink); }
+.det-retenir { margin-top: 10px; padding: 10px 14px; border-radius: 8px; background: var(--rem-bg); border: 1px dashed var(--rem); }
+.det-retenir .det-h { color: var(--rem); }
+.btn[data-a="det"].on { background: var(--sc); color: var(--sc-on, #fff); border-color: var(--sc); }
 .box-title { font-family: var(--font-ui); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; color: var(--muted); }
 .exo-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
 .exo-more { display: flex; gap: 10px; align-items: center; justify-content: flex-end; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
@@ -423,6 +435,9 @@ ol.plan { list-style: none; padding: 0; margin: 0 0 8px; position: relative; }
 .export-card .xc-title { font-family: var(--font-ui); font-size: 21px; margin: 4px 0 12px; color: #1c2230; }
 .export-card .xc-body > p:first-child { margin-top: 0; }
 .export-card .xc-cor { margin-top: 14px; padding: 12px 16px; background: #eefaf1; border-left: 4px solid #237a3b; border-radius: 8px; }
+.export-card .xc-det { background: #f3f6fb; border-left-color: #3b5b9a; }
+.export-card .det-h { font-weight: 700; display: block; margin: 6px 0 2px; }
+.export-card .det-retenir { margin-top: 8px; padding: 8px 12px; border: 1px dashed #888; border-radius: 6px; }
 #toast {
   position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translate(-50%, 30px); opacity: 0;
   max-width: min(92vw, 560px); background: #1c2230; color: #fff; padding: 12px 16px; border-radius: 12px; z-index: 50;

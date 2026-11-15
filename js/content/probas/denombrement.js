@@ -64,6 +64,19 @@
         const cnt2 = Object.assign({}, cnt); cnt2[L]--; if (!cnt2[L]) delete cnt2[L];
         const startL = multinomial(cnt2);
         return {
+          detail: {
+            but: R`<p>Compter les anagrammes de <strong>${w}</strong>, puis celles qui commencent par ${L}.</p>`,
+            methode: R`<p>Ranger $n$ lettres dont certaines sont identiques : $\dfrac{n!}{n_1!\,n_2!\cdots}$ (coefficient multinomial).</p>`,
+            etapes: [
+              R`<b>Inventaire.</b> $${w.length}$ lettres : $${repTex(cnt)}$.`,
+              R`<b>Lettres supposées distinctes.</b> En numérotant les lettres répétées, on aurait $${w.length}!$ rangements.`,
+              R`<b>Lettres identiques.</b> Permuter entre elles des lettres identiques ne change pas le mot : chaque anagramme est comptée ${Object.values(cnt).some(k => k > 1) ? R`$${Object.values(cnt).filter(k => k > 1).map(k => k + '!').join(R` \times `)}$ fois` : 'une seule fois (lettres toutes distinctes)'}.`,
+              R`<b>Résultat.</b> $N = ${multiTex(cnt)} = ${big(total)}$.`,
+              R`<b>Commençant par ${L}.</b> On place un ${L} en tête ; il reste $${w.length - 1}$ lettres ($${repTex(cnt2)}$) à ranger : $${multiTex(cnt2)} = ${big(startL)}$.`,
+              R`<b>Contrôle.</b> Par symétrie, la proportion d'anagrammes commençant par ${L} est la proportion de ${L} dans le mot : $\frac{${big(startL)}}{${big(total)}} = ${F(cnt[L], w.length).tex()}$.`
+            ],
+            retenir: R`<p>Lettres répétées : diviser $n!$ par les factorielles des multiplicités.</p>`
+          },
           enonce: R`<p>Combien d'anagrammes (mots de ${w.length} lettres, ayant un sens ou non) peut-on former avec les lettres du mot <strong>${w}</strong> ? Combien commencent par la lettre <strong>${L}</strong> ?</p>`,
           indication: R`<p>On place les lettres une par une dans ${w.length} cases : il faut ensuite diviser par les permutations des lettres identiques entre elles.</p>`,
           correction: R`<p>Le mot a $${w.length}$ lettres, avec les répétitions : $${repTex(cnt)}$.</p>
@@ -82,27 +95,50 @@
         let j; do { j = r.int(1, k - 1); } while (j > rr || k - j > bb);
         const mode = r.pick(['simul', 'remise', 'sans']);
         const modeTxt = { simul: 'simultanément', remise: 'successivement <strong>avec remise</strong>', sans: 'successivement <strong>sans remise</strong>' }[mode];
-        let cor;
+        let cor, det;
         if (mode === 'simul') {
           const tot = binom(n, k), ex = binom(rr, j) * binom(bb, k - j), al = tot - binom(bb, k);
           cor = R`<p>Un tirage simultané est une <strong>partie</strong> à $${k}$ éléments de l'ensemble des $${n}$ boules (l'ordre ne compte pas).</p>
             <ol><li>Nombre de tirages : $${C(n, k)} = ${big(tot)}$.</li>
             <li>Exactement $${j}$ rouges : on choisit $${j}$ rouges parmi $${rr}$ <em>et</em> $${k - j}$ blanches parmi $${bb}$ : $${C(rr, j)}\times${C(bb, k - j)} = ${big(ex)}$.</li>
             <li>Au moins une rouge : on passe au complémentaire (aucune rouge = que des blanches) : $${C(n, k)} - ${C(bb, k)} = ${big(al)}$.</li></ol>`;
+          det = [
+            R`<b>Modèle.</b> Tirage simultané : l'ordre ne compte pas, une boule ne sort pas deux fois. Un résultat est une <strong>partie</strong> à $${k}$ éléments : $\binom{${n}}{${k}} = ${big(tot)}$ tirages.`,
+            R`<b>Exactement $${j}$ rouges.</b> On choisit les rouges ($\binom{${rr}}{${j}} = ${big(binom(rr, j))}$ façons) <em>et</em> les blanches ($\binom{${bb}}{${k - j}} = ${big(binom(bb, k - j))}$ façons) ; chaque tirage est obtenu une seule fois : produit $${big(ex)}$.`,
+            R`<b>Au moins une rouge.</b> Contraire : « aucune rouge » = $${k}$ blanches, $\binom{${bb}}{${k}} = ${big(binom(bb, k))}$ tirages. Réponse : $${big(tot)} - ${big(binom(bb, k))} = ${big(al)}$.`
+          ];
         } else if (mode === 'remise') {
           const tot = bpow(n, k), ex = binom(k, j) * bpow(rr, j) * bpow(bb, k - j), al = tot - bpow(bb, k);
           cor = R`<p>Un résultat est une <strong>$${k}$-liste</strong> (ordonnée, avec répétitions possibles) de boules.</p>
             <ol><li>Nombre de tirages : $${n}^{${k}} = ${big(tot)}$.</li>
             <li>Exactement $${j}$ rouges : on choisit les positions des rouges parmi les $${k}$ tirages ($${C(k, j)}$ façons), puis une boule rouge pour chacune ($${rr}^{${j}}$) et une blanche pour les autres ($${bb}^{${k - j}}$) : $${C(k, j)}\,${rr}^{${j}}\,${bb}^{${k - j}} = ${big(ex)}$.</li>
             <li>Au moins une rouge : $${n}^{${k}} - ${bb}^{${k}} = ${big(al)}$.</li></ol>`;
+          det = [
+            R`<b>Modèle.</b> Tirages successifs avec remise : l'ordre compte et une même boule peut ressortir. Un résultat est une <strong>$${k}$-liste</strong> de boules : $${n}^{${k}} = ${big(tot)}$ tirages.`,
+            R`<b>Exactement $${j}$ rouges : rangs.</b> On choisit lesquels des $${k}$ tirages donnent une rouge : $\binom{${k}}{${j}} = ${big(binom(k, j))}$ façons.`,
+            R`<b>Exactement $${j}$ rouges : boules.</b> ${rr} choix pour chaque rang rouge ($${rr}^{${j}}$), ${bb} pour chaque rang blanc ($${bb}^{${k - j}}$) : $${big(binom(k, j))} \times ${big(bpow(rr, j))} \times ${big(bpow(bb, k - j))} = ${big(ex)}$.`,
+            R`<b>Au moins une rouge.</b> Contraire : que des blanches, $${bb}^{${k}} = ${big(bpow(bb, k))}$ listes. Réponse : $${big(tot)} - ${big(bpow(bb, k))} = ${big(al)}$.`
+          ];
         } else {
           const tot = arr(n, k), ex = binom(k, j) * arr(rr, j) * arr(bb, k - j), al = tot - arr(bb, k);
           cor = R`<p>Un résultat est une <strong>$${k}$-liste sans répétition</strong> (arrangement) de boules.</p>
             <ol><li>Nombre de tirages : $A_{${n}}^{${k}} = ${Array.from({ length: k }, (_, i) => n - i).join(R`\times`)} = ${big(tot)}$.</li>
             <li>Exactement $${j}$ rouges : positions des rouges ($${C(k, j)}$), rouges ordonnées ($A_{${rr}}^{${j}}$), blanches ordonnées ($A_{${bb}}^{${k - j}}$) : $${C(k, j)}\,A_{${rr}}^{${j}}\,A_{${bb}}^{${k - j}} = ${big(ex)}$.</li>
             <li>Au moins une rouge : $A_{${n}}^{${k}} - A_{${bb}}^{${k}} = ${big(al)}$.</li></ol>`;
+          det = [
+            R`<b>Modèle.</b> Tirages successifs sans remise : l'ordre compte, pas de répétition. Un résultat est un <strong>arrangement</strong> : $A_{${n}}^{${k}} = ${big(tot)}$ tirages.`,
+            R`<b>Exactement $${j}$ rouges : rangs.</b> $\binom{${k}}{${j}} = ${big(binom(k, j))}$ choix des rangs où sortent les rouges.`,
+            R`<b>Exactement $${j}$ rouges : boules.</b> Les rouges, dans l'ordre de leurs rangs, forment un arrangement de $${j}$ parmi $${rr}$ ($A_{${rr}}^{${j}} = ${big(arr(rr, j))}$) ; de même les blanches ($A_{${bb}}^{${k - j}} = ${big(arr(bb, k - j))}$). Produit : $${big(ex)}$.`,
+            R`<b>Au moins une rouge.</b> Contraire : $${k}$ blanches, $A_{${bb}}^{${k}} = ${big(arr(bb, k))}$ arrangements. Réponse : $${big(tot)} - ${big(arr(bb, k))} = ${big(al)}$.`
+          ];
         }
         return {
+          detail: {
+            but: R`<p>Dénombrer des tirages de $${k}$ boules (${modeTxt.replace(/<[^>]+>/g, '')}) selon leur composition.</p>`,
+            methode: R`<p>Identifier le modèle : l'<strong>ordre</strong> compte-t-il ? les <strong>répétitions</strong> sont-elles possibles ? Puis « exactement » : construire étape par étape ; « au moins » : complémentaire.</p>`,
+            etapes: det,
+            retenir: R`<p>Simultané : $\binom nk$ ; avec remise : $n^k$ ; sans remise (ordonné) : $A_n^k$.</p>`
+          },
           enonce: R`<p>Une urne contient $${rr}$ boules rouges et $${bb}$ boules blanches, toutes discernables. On tire $${k}$ boules ${modeTxt}.</p>
             <ol><li>Combien y a-t-il de tirages possibles ?</li><li>Combien contiennent exactement $${j}$ boule${j > 1 ? 's' : ''} rouge${j > 1 ? 's' : ''} ?</li><li>Combien contiennent au moins une boule rouge ?</li></ol>`,
           indication: R`<p>Identifier d'abord le modèle : l'ordre compte-t-il ? les répétitions sont-elles possibles ?</p>`,
@@ -123,6 +159,16 @@
         const txt = ctx.txt || R`lettres d'un alphabet à $${n}$ symboles`;
         const tot = bpow(n, p), sr = arr(n, p);
         return {
+          detail: {
+            but: R`<p>Compter des ${ctx.obj} de longueur $${p}$ sur $${n}$ symboles : tous, à symboles distincts, avec au moins une répétition.</p>`,
+            methode: R`<p>Ordre important + répétitions : $n^p$ (listes). Ordre important sans répétition : $A_n^p$ (arrangements). « Au moins une répétition » : complémentaire.</p>`,
+            etapes: [
+              R`<b>Tous.</b> Chaque position reçoit l'un des $${n}$ symboles, indépendamment des autres : $${n}^{${p}} = ${big(tot)}$.`,
+              R`<b>Symboles distincts.</b> ${n} choix pour le 1<sup>er</sup>, ${n - 1} pour le 2<sup>e</sup> (différent du 1<sup>er</sup>), …, ${n - p + 1} pour le dernier : $A_{${n}}^{${p}} = ${Array.from({ length: p }, (_, i) => n - i).join(R` \times `)} = ${big(sr)}$.`,
+              R`<b>Au moins une répétition.</b> C'est le contraire de « tous distincts » : $${big(tot)} - ${big(sr)} = ${big(tot - sr)}$.`
+            ],
+            retenir: R`<p>Liste avec répétitions : $n^p$ ; sans répétition : $A_n^p = \frac{n!}{(n-p)!}$.</p>`
+          },
           enonce: R`<p>On forme des ${ctx.obj} de longueur $${p}$ à l'aide des ${txt}.</p><ol><li>Combien y en a-t-il ?</li><li>Combien sont formés de ${p} symboles tous distincts ?</li><li>Combien comportent au moins une répétition ?</li></ol>`,
           correction: R`<ol><li>Un ${ctx.obj.slice(0, -1)} est une $${p}$-liste d'éléments d'un ensemble à $${n}$ éléments : $${n}^{${p}} = ${big(tot)}$.</li>
             <li>Symboles distincts : arrangement, $A_{${n}}^{${p}} = \dfrac{${n}!}{${n - p}!} = ${Array.from({ length: p }, (_, i) => n - i).join(R`\times`)} = ${big(sr)}$.</li>
@@ -138,6 +184,17 @@
         const a = binom(n + k - 1, k - 1), b = binom(n - 1, k - 1);
         const vars = Array.from({ length: k }, (_, i) => 'x_' + (i + 1)).join(' + ');
         return {
+          detail: {
+            but: R`<p>Compter les solutions entières de $${vars} = ${n}$, avec $x_i \ge 0$ puis $x_i \ge 1$.</p>`,
+            methode: R`<p><strong>Étoiles et barres</strong> : une solution correspond à une suite de $${n}$ étoiles et $${k - 1}$ barres.</p>`,
+            etapes: [
+              R`<b>Codage.</b> On écrit $x_1$ étoiles, une barre, $x_2$ étoiles, une barre, …, $x_${k}$ étoiles : une suite de $${n}$ étoiles et $${k - 1}$ barres. Toute telle suite redonne une unique solution : c'est une bijection.`,
+              R`<b>Comptage ($x_i \ge 0$).</b> La suite a $${n + k - 1}$ symboles et elle est déterminée par la position des $${k - 1}$ barres : $${C(n + k - 1, k - 1)} = ${big(a)}$.`,
+              R`<b>Changement de variable ($x_i \ge 1$).</b> On pose $y_i = x_i - 1 \ge 0$ : $y_1 + \dots + y_${k} = ${n} - ${k} = ${n - k}$.`,
+              R`<b>Comptage.</b> Par la première question avec $${n - k}$ étoiles : $${C(n - 1, k - 1)} = ${big(b)}$ solutions.`
+            ],
+            retenir: R`<p>$x_1 + \dots + x_k = n$ : $\binom{n+k-1}{k-1}$ solutions dans $\N$, $\binom{n-1}{k-1}$ dans $\N^*$.</p>`
+          },
           enonce: R`<p>Combien l'équation $${vars} = ${n}$ admet-elle de solutions $(x_1, \dots, x_${k})$ :</p><ol><li>en entiers naturels ($x_i \ge 0$) ?</li><li>en entiers strictement positifs ($x_i \ge 1$) ?</li></ol>`,
           indication: R`<p>Méthode « étoiles et barres » : une solution correspond à une suite de $${n}$ étoiles et $${k - 1}$ barres.</p>`,
           correction: R`<p>1. On représente une solution par $${n}$ étoiles séparées en $${k}$ paquets par $${k - 1}$ barres ($x_i$ = nombre d'étoiles du $i$-ème paquet). Une solution correspond donc au choix des positions des $${k - 1}$ barres parmi $${n + k - 1}$ places :</p>
@@ -154,6 +211,18 @@
         let j; do { j = r.int(1, k - 1); } while (j > f || k - j > h);
         const tot = binom(n, k), ex = binom(f, j) * binom(h, k - j), mix = tot - binom(h, k) - binom(f, k), pres = BigInt(n) * binom(n - 1, k - 1);
         return {
+          detail: {
+            but: R`<p>Dénombrer des comités de $${k}$ personnes avec des contraintes de composition, puis avec un président.</p>`,
+            methode: R`<p>Comité = <strong>partie</strong> (pas d'ordre). Composition imposée → produit de combinaisons. « Au moins un de chaque » → complémentaire.</p>`,
+            etapes: [
+              R`<b>Total.</b> On choisit $${k}$ personnes parmi $${n}$, sans ordre : $${C(n, k)} = ${big(tot)}$.`,
+              R`<b>Exactement $${j}$ L3.</b> $${j}$ L3 parmi $${f}$ ($${C(f, j)} = ${big(binom(f, j))}$) et $${k - j}$ L2 parmi $${h}$ ($${C(h, k - j)} = ${big(binom(h, k - j))}$) : produit $${big(ex)}$.`,
+              R`<b>Au moins un de chaque année.</b> Contraire : « tous en L2 » ($${C(h, k)} = ${big(binom(h, k))}$) ou « tous en L3 » ($${C(f, k)} = ${big(binom(f, k))}$), cas disjoints. Réponse : $${big(tot)} - ${big(binom(h, k))} - ${big(binom(f, k))} = ${big(mix)}$.`,
+              R`<b>Avec un président.</b> Président d'abord ($${n}$ choix), puis les $${k - 1}$ autres membres parmi les $${n - 1}$ restants : $${n} \times ${C(n - 1, k - 1)} = ${big(pres)}$.`,
+              R`<b>Contrôle.</b> Autre ordre : comité ($${big(tot)}$ choix) puis président parmi ses $${k}$ membres : $${k} \times ${big(tot)} = ${big(BigInt(k) * tot)}$, même résultat (formule du pion).`
+            ],
+            retenir: R`<p>Comité : $\binom nk$ ; un rôle particulier (président) se choisit à part.</p>`
+          },
           enonce: R`<p>Un groupe de travail réunit $${h}$ étudiants de L2 et $${f}$ étudiants de L3. On forme un comité de $${k}$ personnes.</p>
             <ol><li>Combien de comités possibles ?</li><li>Combien comportent exactement $${j}$ étudiant${j > 1 ? 's' : ''} de L3 ?</li><li>Combien comportent au moins un étudiant de chaque année ?</li><li>Combien de comités avec un président désigné parmi les membres ?</li></ol>`,
           correction: R`<ol><li>Parties à $${k}$ éléments parmi $${n}$ : $${C(n, k)} = ${big(tot)}$.</li>
@@ -173,6 +242,17 @@
         const tot = binom(n, k), ex = binom(rr, j) * binom(bb, k - j);
         const none = binom(bb, k), same = binom(rr, k) + binom(bb, k);
         return {
+          detail: {
+            but: R`<p>Probabilités sur la composition d'un tirage simultané de $${k}$ boules.</p>`,
+            methode: R`<p>Numéroter les boules → $\Omega$ = parties à $${k}$ éléments, <strong>équiprobables</strong> → $\Proba(A) = \frac{\Card A}{\Card\Omega}$ ; contraire pour « au moins ».</p>`,
+            etapes: [
+              R`<b>Univers.</b> $\Card\Omega = \binom{${n}}{${k}} = ${big(tot)}$ ; les boules étant indiscernables au toucher, chaque partie a la même probabilité.`,
+              R`<b>Exactement $${j}$ rouge${j > 1 ? 's' : ''}.</b> $${j}$ rouges parmi $${rr}$ et $${k - j}$ blanches parmi $${bb}$ : $\binom{${rr}}{${j}}\binom{${bb}}{${k - j}} = ${big(binom(rr, j))} \times ${big(binom(bb, k - j))} = ${big(ex)}$ cas favorables, donc $\Proba = \frac{${big(ex)}}{${big(tot)}} = ${fr(ex, tot)}$.`,
+              R`<b>Au moins une rouge.</b> Contraire : que des blanches, $\binom{${bb}}{${k}} = ${big(none)}$ cas. $\Proba = 1 - \frac{${big(none)}}{${big(tot)}} = ${fr(tot - none, tot)}$.`,
+              R`<b>Même couleur.</b> « Toutes rouges » ($\binom{${rr}}{${k}} = ${big(binom(rr, k))}$ cas) ou « toutes blanches » ($${big(none)}$ cas), incompatibles : $\frac{${big(same)}}{${big(tot)}} = ${fr(same, tot)}$.`
+            ],
+            retenir: R`<p>Tirage simultané : cas favorables et cas possibles se comptent avec des $\binom nk$.</p>`
+          },
           enonce: R`<p>Une urne contient $${rr}$ boules rouges et $${bb}$ boules blanches, indiscernables au toucher. On tire simultanément $${k}$ boules.</p>
             <ol><li>Quelle est la probabilité d'obtenir exactement $${j}$ boule${j > 1 ? 's' : ''} rouge${j > 1 ? 's' : ''} ?</li><li>Quelle est la probabilité d'obtenir au moins une boule rouge ?</li><li>Quelle est la probabilité que toutes les boules tirées soient de la même couleur ?</li></ol>`,
           indication: R`<p>Numéroter les boules : l'univers est l'ensemble des parties à $${k}$ éléments, muni de l'équiprobabilité.</p>`,
@@ -197,6 +277,18 @@
         const x = LA.length, y = LB.length, z = LAB.length, indep = z * 36 === x * y;
         const cmp = indep ? '' : (z * 36 > x * y ? 'augmente' : 'diminue');
         return {
+          detail: {
+            but: R`<p>Calculer $\Proba(A)$, $\Proba(A \mid B)$ et tester l'indépendance de $A$ et $B$.</p>`,
+            methode: R`<p>Univers des 36 couples équiprobables. En équiprobabilité, $\Proba(A \mid B) = \frac{\Card(A \cap B)}{\Card B}$. Indépendance : comparer $\Proba(A \cap B)$ et $\Proba(A)\Proba(B)$.</p>`,
+            etapes: [
+              R`<b>Univers.</b> Dés discernables : $\Omega = \{1, \dots, 6\}^2$, 36 couples équiprobables.`,
+              R`<b>Compter $A$.</b> ${x <= 9 ? R`$A = ${ensTex(LA)}$, ` : ''}$\Card A = ${x}$, donc $\Proba(A) = \frac{${x}}{36} = ${fr(x, 36)}$.`,
+              R`<b>Compter $B$ et $A \cap B$.</b> $\Card B = ${y}$ ; ${z <= 9 ? R`$A \cap B = ${ensTex(LAB)}$, ` : ''}$\Card(A \cap B) = ${z}$.`,
+              R`<b>Probabilité conditionnelle.</b> On restreint l'univers à $B$ : $\Proba(A \mid B) = \frac{\Card(A \cap B)}{\Card B} = \frac{${z}}{${y}} = ${fr(z, y)}$.`,
+              R`<b>Indépendance.</b> $\Proba(A)\Proba(B) = \frac{${x}}{36} \times \frac{${y}}{36} = ${fr(x * y, 1296)}$ et $\Proba(A \cap B) = \frac{${z}}{36} = ${fr(z, 36)}$ : ${indep ? 'égaux, donc indépendants.' : R`différents, donc non indépendants (savoir que $B$ est réalisé ${cmp} la probabilité de $A$).`}`
+            ],
+            retenir: R`<p>Indépendants $\iff \Proba(A \cap B) = \Proba(A)\Proba(B) \iff \Proba(A \mid B) = \Proba(A)$.</p>`
+          },
           enonce: R`<p>On lance deux dés équilibrés. On note $A$ : « ${A.txt} » et $B$ : « ${B.txt} ».</p>
             <ol><li>Calculer $\Proba(A)$.</li><li>Calculer $\Proba(A \mid B)$.</li><li>Les événements $A$ et $B$ sont-ils indépendants ?</li></ol>`,
           indication: R`<p>Rendre les dés discernables : $\Omega = \{1, \dots, 6\}^2$, 36 issues équiprobables. En équiprobabilité, $\Proba(A \mid B) = \dfrac{\Card(A \cap B)}{\Card B}$.</p>`,
@@ -218,6 +310,18 @@
         if (r.chance(0.5)) {
           const ab = a.mul(b), u = a.add(b).sub(ab), anb = a.mul(F(1).sub(b)), ni = F(1).sub(a).mul(F(1).sub(b)), un = a.add(b).sub(ab.mul(2));
           return {
+            detail: {
+              but: R`<p>Calculer des probabilités à partir de $\Proba(A)$, $\Proba(B)$ et de l'indépendance.</p>`,
+              methode: R`<p>Indépendance : $\Proba(A \cap B) = \Proba(A)\Proba(B)$, et elle passe aux contraires. Puis formule de $\Proba(A \cup B)$.</p>`,
+              etapes: [
+                R`<b>Intersection.</b> $\Proba(A \cap B) = ${a.tex()} \times ${b.tex()} = ${ab.tex()}$.`,
+                R`<b>Réunion.</b> $\Proba(A \cup B) = \Proba(A) + \Proba(B) - \Proba(A \cap B) = ${a.tex()} + ${b.tex()} - ${ab.tex()} = ${u.tex()}$.`,
+                R`<b>$A \cap \overline B$.</b> $A$ et $\overline B$ sont indépendants : $${a.tex()} \times ${F(1).sub(b).tex()} = ${anb.tex()}$. Vérification : $\Proba(A) - \Proba(A \cap B) = ${a.sub(ab).tex()}$.`,
+                R`<b>Ni $A$ ni $B$.</b> $\overline A$ et $\overline B$ sont indépendants : $${F(1).sub(a).tex()} \times ${F(1).sub(b).tex()} = ${ni.tex()}$ ; c'est aussi $1 - \Proba(A \cup B)$ (De Morgan).`,
+                R`<b>Un seul des deux.</b> $(A \cap \overline B) \sqcup (\overline A \cap B)$ : $\Proba(A) - \Proba(A \cap B) + \Proba(B) - \Proba(A \cap B) = ${un.tex()}$.`
+              ],
+              retenir: R`<p>Si $A$ et $B$ sont indépendants, leurs contraires aussi : on multiplie les probabilités des contraires.</p>`
+            },
             enonce: R`<p>$A$ et $B$ sont deux événements <strong>indépendants</strong> avec $\Proba(A) = ${a.tex()}$ et $\Proba(B) = ${b.tex()}$. Calculer :</p>
               <ol><li>$\Proba(A \cap B)$ et $\Proba(A \cup B)$ ;</li><li>$\Proba(A \cap \overline B)$ ;</li><li>la probabilité que ni $A$ ni $B$ ne soit réalisé ;</li><li>la probabilité qu'un seul des deux événements soit réalisé.</li></ol>`,
             correction: R`<ol><li>Indépendance : $\Proba(A \cap B) = \Proba(A)\Proba(B) = ${ab.tex()}$. Puis $\Proba(A \cup B) = \Proba(A) + \Proba(B) - \Proba(A \cap B) = ${a.tex()} + ${b.tex()} - ${ab.tex()} = ${u.tex()}$.</li>
@@ -232,6 +336,17 @@
         const inter = (cands.length && r.chance(0.6)) ? r.pick(cands) : ab;
         const u = a.add(b).sub(inter), indep = inter.eq(ab);
         return {
+          detail: {
+            but: R`<p>Retrouver $\Proba(A \cap B)$ et décider de l'indépendance.</p>`,
+            methode: R`<p>Isoler $\Proba(A \cap B)$ dans la formule de $\Proba(A \cup B)$, puis comparer avec $\Proba(A)\Proba(B)$.</p>`,
+            etapes: [
+              R`<b>Intersection.</b> $\Proba(A \cup B) = \Proba(A) + \Proba(B) - \Proba(A \cap B)$, donc $\Proba(A \cap B) = ${a.tex()} + ${b.tex()} - ${u.tex()} = ${inter.tex()}$.`,
+              R`<b>Probabilité conditionnelle.</b> $\Proba(A \mid B) = \frac{\Proba(A \cap B)}{\Proba(B)} = ${inter.div(b).tex()}$.`,
+              R`<b>Produit.</b> $\Proba(A)\Proba(B) = ${a.tex()} \times ${b.tex()} = ${ab.tex()}$.`,
+              R`<b>Conclusion.</b> ${indep ? R`$\Proba(A \cap B) = \Proba(A)\Proba(B)$ : indépendants ; d'ailleurs $\Proba(A \mid B) = \Proba(A)$.` : R`$\Proba(A \cap B) \neq \Proba(A)\Proba(B)$ : non indépendants ; savoir $B$ change la probabilité de $A$ ($${inter.div(b).tex()}$ au lieu de $${a.tex()}$).`}`
+            ],
+            retenir: R`<p>Pour tester l'indépendance, il faut $\Proba(A \cap B)$ : on l'obtient souvent par la formule de la réunion.</p>`
+          },
           enonce: R`<p>On donne $\Proba(A) = ${a.tex()}$, $\Proba(B) = ${b.tex()}$ et $\Proba(A \cup B) = ${u.tex()}$.</p>
             <ol><li>Calculer $\Proba(A \cap B)$ et $\Proba(A \mid B)$.</li><li>$A$ et $B$ sont-ils indépendants ?</li></ol>`,
           correction: R`<ol><li>$\Proba(A \cap B) = \Proba(A) + \Proba(B) - \Proba(A \cup B) = ${a.tex()} + ${b.tex()} - ${u.tex()} = ${inter.tex()}$, puis $\Proba(A \mid B) = \dfrac{\Proba(A \cap B)}{\Proba(B)} = ${inter.div(b).tex()}$.</li>
@@ -266,6 +381,19 @@
         const sys = urnes.map((u, i) => 'U_' + (i + 1)).join(', ');
         const somme = urnes.map(u => R`${u.p.tex()} \times \frac{${u.r}}{${u.n}}`).join(' + ');
         return {
+          detail: {
+            but: R`<p>Probabilité de tirer une rouge quand l'urne est choisie au hasard, puis probabilités des urnes sachant la couleur.</p>`,
+            methode: R`<p>Système complet = « dans quelle urne on tire ». <strong>Probabilités totales</strong> pour $\Proba(R)$, <strong>Bayes</strong> pour remonter à l'urne.</p>`,
+            etapes: [
+              R`<b>Système complet.</b> $U_i$ : « on tire dans l'urne $U_i$ ». Ces événements sont incompatibles et l'un d'eux se produit : ${urnes.map((u, i) => R`$\Proba(U_${i + 1}) = ${u.p.tex()}$`).join(', ')}.`,
+              R`<b>Probabilités conditionnelles.</b> ${urnes.map((u, i) => R`$\Proba_{U_${i + 1}}(R) = \frac{${u.r}}{${u.n}}$`).join(', ')} (proportion de rouges dans chaque urne).`,
+              R`<b>Chemins vers $R$.</b> ${urnes.map((u, i) => R`$\Proba(U_${i + 1} \cap R) = ${u.p.tex()} \times \frac{${u.r}}{${u.n}} = ${u.p.mul(F(u.r, u.n)).tex()}$`).join(' ; ')}.`,
+              R`<b>Probabilités totales.</b> $\Proba(R) = ${urnes.map(u => u.p.mul(F(u.r, u.n)).tex()).join(' + ')} = ${pR.tex()}$.`,
+              R`<b>Bayes ($U_1$ sachant $R$).</b> $\Proba_R(U_1) = \frac{\Proba(U_1 \cap R)}{\Proba(R)} = \frac{${j1.tex()}}{${pR.tex()}} = ${post1.tex()}$.`,
+              R`<b>Bayes ($U_${m}$ sachant « blanche »).</b> $\Proba(\overline R) = 1 - ${pR.tex()} = ${pB.tex()}$ et $\Proba(U_${m} \cap \overline R) = ${last.p.tex()} \times \frac{${last.b}}{${last.n}} = ${last.p.mul(F(last.b, last.n)).tex()}$, donc $\Proba_{\overline R}(U_${m}) = ${postL.tex()}$.`
+            ],
+            retenir: R`<p>Arbre : produit le long d'un chemin, somme des chemins ; Bayes = chemin / somme des chemins.</p>`
+          },
           enonce: R`<p>On dispose de ${m} urnes : ${desc}. ${choix} On note $R$ l'événement « la boule tirée est rouge ».</p>
             <ol><li>Calculer $\Proba(R)$.</li><li>La boule tirée est rouge. Quelle est la probabilité qu'elle provienne de $U_1$ ?</li><li>La boule tirée est blanche. Quelle est la probabilité qu'elle provienne de $U_${m}$ ?</li></ol>`,
           indication: R`<p>$(${sys})$ est un système complet d'événements : faire un arbre pondéré.</p>`,
@@ -301,6 +429,19 @@
         const sn = (100 - a) * q, mn = a * (100 - s);
         const pT = T / 1e4, post = mt / T, post2 = sn / (sn + mn);
         return {
+          detail: {
+            but: R`<p>Probabilité de l'événement « cause » $M$ sachant le résultat observé ($T$ ou $\overline T$).</p>`,
+            methode: R`<p>Traduire les pourcentages en probabilités (simples ou conditionnelles), faire l'<strong>arbre</strong> $M / \overline M$ puis $T / \overline T$, appliquer les probabilités totales puis <strong>Bayes</strong>.</p>`,
+            etapes: [
+              R`<b>Traduction.</b> $\Proba(M) = ${dec(a / 100, 2)}$ ; $\Proba_M(T) = ${dec(s / 100, 2)}$ ; $\Proba_{\overline M}(T) = ${dec((100 - q) / 100, 2)}$ (donc $\Proba_{\overline M}(\overline T) = ${dec(q / 100, 2)}$).`,
+              R`<b>Les quatre chemins.</b> $\Proba(M \cap T) = ${dec(mt / 1e4, 4)}$, $\Proba(M \cap \overline T) = ${dec(mn / 1e4, 4)}$, $\Proba(\overline M \cap T) = ${dec(nt / 1e4, 4)}$, $\Proba(\overline M \cap \overline T) = ${dec(sn / 1e4, 4)}$ (somme : 1).`,
+              R`<b>Probabilités totales.</b> $\Proba(T) = ${dec(mt / 1e4, 4)} + ${dec(nt / 1e4, 4)} = ${dec(pT, 4)}$.`,
+              R`<b>Bayes.</b> $\Proba_T(M) = \frac{\Proba(M \cap T)}{\Proba(T)} = \frac{${dec(mt / 1e4, 4)}}{${dec(pT, 4)}} ${approx(post)}$.`,
+              R`<b>Résultat négatif.</b> $\Proba(\overline T) = ${dec(1 - pT, 4)}$ et $\Proba_{\overline T}(\overline M) = \frac{${dec(sn / 1e4, 4)}}{${dec(1 - pT, 4)}} ${approx(post2)}$.`,
+              R`<b>Lecture en effectifs.</b> Sur $10\,000$ cas : environ ${mt} cas où $M$ et $T$ sont réalisés, contre ${nt} où $T$ est réalisé sans $M$ ; ${post < 0.5 ? 'ces derniers sont majoritaires, car $M$ est rare.' : 'les premiers sont majoritaires.'}`
+            ],
+            retenir: R`<p>Ne pas confondre $\Proba_M(T)$ (fiabilité du dispositif) et $\Proba_T(M)$ (ce qu'on veut savoir) : Bayes fait le lien.</p>`
+          },
           enonce: R`<p>${L.intro}</p><ol><li>Quelle est la probabilité de l'événement $T$ : « ${L.T} » ?</li><li>${L.q2}</li><li>${L.q3}</li></ol>`,
           indication: R`<p>Noter $M$ : « ${L.M} ». Traduire les pourcentages en $\Proba(M)$, $\Proba_M(T)$, $\Proba_{\overline M}(\overline T)$, puis faire un arbre pondéré.</p>`,
           correction: R`<p>Notons $M$ : « ${L.M} » et $T$ : « ${L.T} ». Données : $\Proba(M) = ${dec(a / 100, 2)}$, $\Proba_M(T) = ${dec(s / 100, 2)}$, $\Proba_{\overline M}(\overline T) = ${dec(q / 100, 2)}$ donc $\Proba_{\overline M}(T) = ${dec((100 - q) / 100, 2)}$.</p>
@@ -325,6 +466,19 @@
         const pn = 1 - Math.pow(qv, n), one = n * p.val() * Math.pow(qv, n - 1);
         const nmin = Math.ceil(Math.log(1 - c) / Math.log(qv) - 1e-12);
         return {
+          detail: {
+            but: R`<p>Probabilité de « ${ev} » au moins une fois, exactement une fois, et nombre d'épreuves nécessaire.</p>`,
+            methode: R`<p>Épreuves <strong>indépendantes</strong> : « au moins une fois » = $1 -$ « jamais » ; le nombre minimal d'épreuves se trouve en résolvant une inéquation avec $\ln$.</p>`,
+            etapes: [
+              R`<b>Jamais.</b> À chaque épreuve, l'échec a la probabilité $q = 1 - ${p.tex()} = ${q.tex()}$ ; par indépendance, $${n}$ échecs ont la probabilité $q^{${n}} ${approx(Math.pow(qv, n))}$.`,
+              R`<b>Au moins une fois.</b> $1 - q^{${n}} ${approx(pn)}$.`,
+              R`<b>Exactement une fois.</b> On choisit l'épreuve réussie ($${n}$ choix) ; succès à cette épreuve, échecs aux autres : $p\,q^{${n - 1}}$ chaque fois. Total : $${n}\,p\,q^{${n - 1}} ${approx(one)}$.`,
+              R`<b>Inéquation.</b> Avec $m$ épreuves : $1 - q^m \ge ${dec(c, 2)} \iff q^m \le ${dec(1 - c, 2)} \iff m\ln q \le \ln(${dec(1 - c, 2)})$.`,
+              R`<b>Division par $\ln q \lt 0$</b> (car $q \lt 1$), qui <strong>change le sens</strong> : $m \ge \frac{\ln(${dec(1 - c, 2)})}{\ln q} \approx ${dec(Math.log(1 - c) / Math.log(qv), 2)}$, donc $m = ${nmin}$ au minimum.`,
+              R`<b>Contrôle.</b> Avec $${nmin}$ épreuves : $1 - q^{${nmin}} ${approx(1 - Math.pow(qv, nmin))}$ ; avec $${nmin - 1}$ : ${nmin > 1 ? R`$1 - q^{${nmin - 1}} ${approx(1 - Math.pow(qv, nmin - 1))}$` : '$0$'}.`
+            ],
+            retenir: R`<p>« Au moins une fois en $n$ essais indépendants » : $1 - (1 - p)^n$ ; attention au changement de sens en divisant par un logarithme négatif.</p>`
+          },
           enonce: R`<p>${txt} On s'intéresse à l'événement « ${ev} » (probabilité $${p.tex()}$ à chaque épreuve).</p>
             <ol><li>Quelle est la probabilité de ${ev} au moins une fois ?</li><li>Quelle est la probabilité de ${ev} exactement une fois ?</li><li>Combien d'épreuves faut-il au minimum pour que la probabilité de ${ev} au moins une fois dépasse $${dec(c, 2)}$ ?</li></ol>`,
           indication: R`<p>Passer au contraire : « ne jamais ${ev} », intersection d'événements <strong>mutuellement indépendants</strong>.</p>`,
@@ -988,8 +1142,292 @@
     { etape: 5, si: R`Un résultat non entier, ou plus grand que le nombre total de cas`, alors: R`Erreur : vérifier qu'on n'a pas <b>compté plusieurs fois</b> le même objet ou divisé à tort.` }
   ];
 
+
+  /* ------------------------------------------------------------------ */
+  /* Corrections détaillées (bouton « Correction détaillée »)            */
+  /* ------------------------------------------------------------------ */
+  const details = {
+    anagrammes: {
+      but: R`<p>Compter les mots formés avec les lettres de ANAGRAMME, puis ceux où les trois A se suivent.</p>`,
+      methode: R`<p>Ranger $n$ objets dont certains sont <strong>identiques</strong> : $\frac{n!}{n_1!\,n_2!\cdots}$. Pour des objets qui doivent être <strong>côte à côte</strong> : les coller en un bloc.</p>`,
+      etapes: [
+        R`<b>Inventaire des lettres.</b> ANAGRAMME a 9 lettres : A (3 fois), M (2 fois), N, G, R, E (1 fois chacune).`,
+        R`<b>Si les lettres étaient toutes distinctes</b> (A₁, A₂, A₃, M₁, M₂…), il y aurait $9! = 362\,880$ rangements.`,
+        R`<b>Lettres identiques.</b> Permuter les trois A entre eux ($3! = 6$ façons) ou les deux M ($2! = 2$ façons) ne change pas le mot : chaque anagramme est comptée $3! \times 2! = 12$ fois.`,
+        R`<b>Résultat.</b> $\dfrac{9!}{3!\,2!} = \dfrac{362\,880}{12} = 30\,240$ anagrammes.`,
+        R`<b>Trois A consécutifs.</b> On colle « AAA » en un seul bloc. On range alors 7 objets : le bloc, N, G, R, E, M, M (les deux M identiques), et l'intérieur du bloc ne se permute pas (lettres identiques).`,
+        R`<b>Résultat.</b> $\dfrac{7!}{2!} = \dfrac{5\,040}{2} = 2\,520$.`
+      ],
+      retenir: R`<p>Lettres répétées → diviser par les factorielles des répétitions ; éléments voisins → bloc.</p>`
+    },
+    urne: {
+      but: R`<p>Dénombrer des tirages simultanés de 3 boules (5 rouges, 4 noires) selon leur composition.</p>`,
+      methode: R`<p>Tirage simultané = <strong>partie</strong> à 3 éléments ($\binom nk$). « Au moins », « deux couleurs » → <strong>complémentaire</strong>.</p>`,
+      etapes: [
+        R`<b>Total.</b> Un tirage est une partie à 3 boules parmi 9 : $\binom93 = \frac{9 \times 8 \times 7}{6} = 84$.`,
+        R`<b>a) Exactement 2 rouges.</b> On choisit les 2 rouges parmi 5 ($\binom52 = 10$) <em>et</em> la noire parmi 4 ($\binom41 = 4$). Principe multiplicatif : $10 \times 4 = 40$.`,
+        R`<b>b) Au moins une rouge.</b> Le contraire est « aucune rouge » = « 3 noires » : $\binom43 = 4$ tirages. Donc $84 - 4 = 80$.`,
+        R`<b>c) Les deux couleurs.</b> Le contraire est « une seule couleur » : 3 rouges ($\binom53 = 10$) ou 3 noires ($4$), cas disjoints. Donc $84 - 10 - 4 = 70$.`,
+        R`<b>Contrôle.</b> Selon le nombre de rouges : $0 : 4$, $1 : \binom51\binom42 = 30$, $2 : 40$, $3 : 10$ ; total $84$ ✓.`
+      ],
+      retenir: R`<p>« Au moins un », « pas tous pareils » : compter le contraire et soustraire au total.</p>`
+    },
+    poker: {
+      but: R`<p>Dénombrer des mains de poker (5 cartes parmi 52) d'un type donné.</p>`,
+      methode: R`<p>Construire la main en choisissant d'abord les <strong>hauteurs</strong> (en distinguant les rôles : paire, cartes isolées), puis les <strong>couleurs</strong>. Ne pas ordonner des éléments qui jouent le même rôle.</p>`,
+      etapes: [
+        R`<b>a) Une paire : hauteur de la paire.</b> 13 choix ; ses 2 couleurs parmi 4 : $\binom42 = 6$.`,
+        R`<b>a) Les 3 autres cartes.</b> Leurs hauteurs sont distinctes entre elles et de celle de la paire, et elles jouent le même rôle : $\binom{12}{3} = 220$ (une partie, pas une liste). Chacune a 4 couleurs possibles : $4^3 = 64$.`,
+        R`<b>a) Total.</b> $13 \times 6 \times 220 \times 64 = 1\,098\,240$.`,
+        R`<b>b) Deux paires.</b> Les deux hauteurs des paires jouent le même rôle : $\binom{13}{2} = 78$ (et non $13 \times 12$, qui compterait chaque main deux fois). Couleurs : $\binom42^2 = 36$. Cinquième carte : une autre hauteur (11 choix) et une couleur (4) : $44$. Total $78 \times 36 \times 44 = 123\,552$.`,
+        R`<b>c) Couleur.</b> On choisit la couleur (4), puis 5 hauteurs parmi 13 : $\binom{13}5 = 1\,287$. Total $5\,148$ (quintes flush comprises).`
+      ],
+      retenir: R`<p>Rôles <strong>identiques</strong> → combinaison $\binom nk$ ; rôles <strong>différents</strong> → choix successifs.</p>`
+    },
+    'poker#1': {
+      but: R`<p>Dénombrer les mains contenant un carré, puis un brelan exactement.</p>`,
+      methode: R`<p>Hauteurs d'abord (selon les rôles), couleurs ensuite.</p>`,
+      etapes: [
+        R`<b>Carré.</b> Hauteur du carré : 13 ; les 4 cartes de cette hauteur sont imposées ; la 5<sup>e</sup> carte est n'importe laquelle des 48 autres. Total $13 \times 48 = 624$.`,
+        R`<b>Brelan : hauteur et couleurs.</b> 13 hauteurs, puis 3 couleurs parmi 4 : $\binom43 = 4$.`,
+        R`<b>Brelan : les deux autres cartes.</b> Hauteurs distinctes entre elles et de celle du brelan (sinon on aurait un full ou un carré), rôles symétriques : $\binom{12}{2} = 66$ ; couleurs $4^2 = 16$.`,
+        R`<b>Total.</b> $13 \times 4 \times 66 \times 16 = 54\,912$.`
+      ],
+      retenir: R`<p>Préciser « exactement » oblige à exclure les mains plus fortes (full, carré).</p>`
+    },
+    identites: {
+      but: R`<p>Démontrer $\sum_{k=0}^n k\binom nk = n2^{n-1}$ par le calcul puis par un dénombrement.</p>`,
+      methode: R`<p>Calcul : <strong>formule du pion</strong> $k\binom nk = n\binom{n-1}{k-1}$ puis binôme. Dénombrement : compter un même ensemble de <strong>deux façons</strong>.</p>`,
+      etapes: [
+        R`<b>Formule du pion.</b> Pour $k \ge 1$, $k\binom nk = n\binom{n-1}{k-1}$ ; le terme $k = 0$ est nul.`,
+        R`<b>Changement d'indice.</b> $\sum_{k=1}^n k\binom nk = n\sum_{k=1}^n\binom{n-1}{k-1} = n\sum_{j=0}^{n-1}\binom{n-1}{j}$ (avec $j = k - 1$).`,
+        R`<b>Binôme.</b> $\sum_{j=0}^{n-1}\binom{n-1}{j} = 2^{n-1}$, d'où le résultat $n2^{n-1}$.`,
+        R`<b>Dénombrement : l'ensemble.</b> Soit $E$ à $n$ éléments. On compte les couples $(A, x)$ où $A \subset E$ est un comité et $x \in A$ son président.`,
+        R`<b>Première façon.</b> Comité de taille $k$ ($\binom nk$ choix), puis président parmi ses $k$ membres : $\sum_k k\binom nk$.`,
+        R`<b>Deuxième façon.</b> Président d'abord ($n$ choix), puis les autres membres forment une partie quelconque des $n - 1$ autres ($2^{n-1}$ choix) : $n2^{n-1}$.`
+      ],
+      retenir: R`<p>Double comptage : un même ensemble compté de deux manières donne une identité.</p>`
+    },
+    'identites#1': {
+      but: R`<p>Montrer $\sum_k\binom nk^2 = \binom{2n}n$.</p>`,
+      methode: R`<p>Transformer le carré en produit de deux coefficients grâce à la symétrie, puis appliquer Vandermonde.</p>`,
+      etapes: [
+        R`<b>Symétrie.</b> $\binom nk = \binom n{n-k}$, donc $\binom nk^2 = \binom nk\binom n{n-k}$.`,
+        R`<b>Vandermonde</b> avec $a = b = n$ : $\sum_k\binom nk\binom n{n-k} = \binom{2n}{n}$.`,
+        R`<b>Lecture combinatoire.</b> Parmi $n$ filles et $n$ garçons, choisir $n$ personnes revient à choisir $k$ filles et $n - k$ garçons, pour un $k$ quelconque.`
+      ],
+      retenir: R`<p>Un produit $\binom ak\binom b{n-k}$ sommé sur $k$ → Vandermonde.</p>`
+    },
+    'identites#2': {
+      but: R`<p>Montrer $\sum_{k=p}^n\binom kp = \binom{n+1}{p+1}$.</p>`,
+      methode: R`<p>Récurrence sur $n$ avec la formule de Pascal, ou dénombrement selon le plus grand élément.</p>`,
+      etapes: [
+        R`<b>Initialisation</b> ($n = p$) : $\binom pp = 1 = \binom{p+1}{p+1}$.`,
+        R`<b>Hérédité.</b> Si $\sum_{k=p}^n\binom kp = \binom{n+1}{p+1}$, on ajoute $\binom{n+1}{p}$ : $\binom{n+1}{p+1} + \binom{n+1}{p} = \binom{n+2}{p+1}$ (Pascal).`,
+        R`<b>Dénombrement.</b> Les parties à $p + 1$ éléments de $\{1, \dots, n+1\}$ se classent selon leur plus grand élément $k + 1$ ($p \le k \le n$) : les $p$ autres éléments sont choisis parmi $\{1, \dots, k\}$, soit $\binom kp$ façons. En sommant : $\binom{n+1}{p+1}$.`
+      ],
+      retenir: R`<p>Classer selon le plus grand élément est une technique de double comptage fréquente.</p>`
+    },
+    crible: {
+      but: R`<p>Compter les entiers de 1 à 1000 divisibles ni par 2, ni par 3, ni par 5.</p>`,
+      methode: R`<p>Compter d'abord ceux divisibles par <strong>au moins un</strong> des nombres (formule du crible), puis passer au complémentaire.</p>`,
+      etapes: [
+        R`<b>Ensembles.</b> $A_d$ = multiples de $d$ dans $\{1, \dots, 1000\}$ ; $|A_d| = \lfloor 1000/d \rfloor$.`,
+        R`<b>Intersections.</b> 2, 3, 5 étant premiers entre eux, « divisible par 2 et 3 » ⟺ « divisible par 6 », etc. Donc $A_2 \cap A_3 = A_6$, $A_2 \cap A_5 = A_{10}$, $A_3 \cap A_5 = A_{15}$, $A_2 \cap A_3 \cap A_5 = A_{30}$.`,
+        R`<b>Cardinaux.</b> $|A_2| = 500$, $|A_3| = 333$, $|A_5| = 200$ ; $|A_6| = 166$, $|A_{10}| = 100$, $|A_{15}| = 66$ ; $|A_{30}| = 33$.`,
+        R`<b>Crible.</b> $|A_2 \cup A_3 \cup A_5| = (500 + 333 + 200) - (166 + 100 + 66) + 33 = 1033 - 332 + 33 = 734$.`,
+        R`<b>Complémentaire.</b> $1000 - 734 = 266$. Contrôle approché : $1000 \times \frac12 \times \frac23 \times \frac45 \approx 267$.`
+      ],
+      retenir: R`<p>« Ni… ni… » = complémentaire d'une réunion ; la réunion se calcule par le crible (signes alternés).</p>`
+    },
+    'crible#1': {
+      but: R`<p>Compter les permutations sans point fixe (dérangements) de $\{1, \dots, n\}$.</p>`,
+      methode: R`<p>$A_i$ = permutations fixant $i$. Les dérangements forment le complémentaire de $\bigcup A_i$ : crible.</p>`,
+      etapes: [
+        R`<b>Intersections.</b> Une permutation de $A_{i_1} \cap \dots \cap A_{i_k}$ fixe $k$ points donnés et permute librement les $n - k$ autres : $(n - k)!$ permutations.`,
+        R`<b>Nombre de termes.</b> Il y a $\binom nk$ façons de choisir $\{i_1, \dots, i_k\}$, d'où une contribution $\binom nk(n-k)! = \frac{n!}{k!}$ au rang $k$.`,
+        R`<b>Crible.</b> $|\bigcup A_i| = \sum_{k=1}^n(-1)^{k+1}\frac{n!}{k!}$.`,
+        R`<b>Complémentaire.</b> $D_n = n! - |\bigcup A_i| = \sum_{k=0}^n(-1)^k\frac{n!}{k!}$ (le terme $k = 0$ vaut $n!$).`,
+        R`<b>$n = 4$.</b> $D_4 = 24 - 24 + 12 - 4 + 1 = 9$. Remarque : $\frac{D_n}{n!} \to e^{-1} \approx 0{,}37$.`
+      ],
+      retenir: R`<p>Quand les intersections ont un cardinal qui ne dépend que de leur nombre $k$, le crible donne une somme simple.</p>`
+    },
+    chemins: {
+      but: R`<p>Compter les chemins monotones dans un quadrillage, puis ceux passant par un point.</p>`,
+      methode: R`<p>Un chemin = un <strong>mot</strong> de pas D (droite) et H (haut) ; il est déterminé par les positions des H.</p>`,
+      etapes: [
+        R`<b>Codage.</b> Aller de $(0,0)$ à $(5,3)$ demande 5 pas D et 3 pas H, soit 8 pas. Un chemin est un mot de longueur 8 avec 5 D et 3 H, et réciproquement (bijection).`,
+        R`<b>Comptage.</b> On choisit les 3 positions des H parmi 8 : $\binom83 = 56$.`,
+        R`<b>Passage par $(2,1)$.</b> Un tel chemin se découpe en un chemin de $(0,0)$ à $(2,1)$ (2 D, 1 H : $\binom31 = 3$) suivi d'un chemin de $(2,1)$ à $(5,3)$ (3 D, 2 H : $\binom52 = 10$).`,
+        R`<b>Principe multiplicatif.</b> $3 \times 10 = 30$ chemins.`
+      ],
+      retenir: R`<p>Chemins monotones : $\binom{a+b}{a}$ ; « passer par un point » → produit de deux comptages.</p>`
+    },
+    surjections: {
+      but: R`<p>Compter les surjections d'un ensemble à $n + 1$ éléments sur un ensemble à $n$ éléments.</p>`,
+      methode: R`<p>Analyser la <strong>structure</strong> d'une telle surjection (combien d'antécédents a chaque élément), puis la construire étape par étape.</p>`,
+      etapes: [
+        R`<b>Structure.</b> Chaque élément de l'arrivée a au moins un antécédent (surjectivité) ; il y a $n$ éléments à l'arrivée et $n + 1$ au départ. Donc exactement un élément de l'arrivée a 2 antécédents, les autres en ont 1.`,
+        R`<b>Choisir la paire.</b> Les deux éléments de départ ayant la même image : $\binom{n+1}{2}$ choix.`,
+        R`<b>Envoyer les blocs.</b> On a alors $n$ « blocs » (la paire et les $n - 1$ singletons) à envoyer <strong>bijectivement</strong> sur les $n$ éléments d'arrivée : $n!$ façons.`,
+        R`<b>Total.</b> $\binom{n+1}2n! = \frac{(n+1)n}{2}n! = \frac{n\,(n+1)!}{2}$. Contrôle $n = 2$ : $\frac{2 \times 6}{2} = 6 = 2^3 - 2$ ✓.`
+      ],
+      retenir: R`<p>Pour compter des applications particulières, décrire d'abord la taille des fibres (ensembles d'antécédents).</p>`
+    },
+    etoiles: {
+      but: R`<p>Répartir 10 bonbons identiques entre 4 enfants, avec ou sans minimum d'un bonbon.</p>`,
+      methode: R`<p>Répartition d'objets <strong>identiques</strong> dans des boîtes <strong>distinctes</strong> = solutions entières de $x_1 + \dots + x_k = n$ : <strong>étoiles et barres</strong>.</p>`,
+      etapes: [
+        R`<b>Traduction.</b> $x_i$ = nombre de bonbons de l'enfant $i$ : on compte les solutions de $x_1 + x_2 + x_3 + x_4 = 10$ dans $\N$.`,
+        R`<b>Étoiles et barres.</b> Une solution = 10 étoiles et 3 barres alignées (13 symboles) ; on choisit la place des 3 barres : $\binom{13}{3} = 286$.`,
+        R`<b>Au moins un bonbon.</b> On pose $y_i = x_i - 1 \ge 0$ : $y_1 + \dots + y_4 = 6$, d'où $\binom{9}{3} = 84$.`,
+        R`<b>Autre vision.</b> On place 3 barres dans les 9 espaces entre les 10 étoiles (une barre au plus par espace) : $\binom93 = 84$.`
+      ],
+      retenir: R`<p>$x_i \ge 0$ : $\binom{n+k-1}{k-1}$ ; $x_i \ge 1$ : $\binom{n-1}{k-1}$.</p>`
+    },
+    'deux-des': {
+      but: R`<p>Calculer quatre probabilités liées au lancer de deux dés.</p>`,
+      methode: R`<p>Choisir un univers à issues <strong>équiprobables</strong> : les couples (dés discernables), puis $\Proba(A) = \frac{\Card A}{36}$.</p>`,
+      etapes: [
+        R`<b>Univers.</b> On distingue les dés (un rouge, un bleu) : $\Omega = \{1, \dots, 6\}^2$, 36 couples équiprobables. Les sommes $2, \dots, 12$ ne sont pas équiprobables : on ne les prend pas comme issues.`,
+        R`<b>a) Somme 7.</b> $(1,6), (2,5), (3,4), (4,3), (5,2), (6,1)$ : 6 couples, $\Proba = \frac{6}{36} = \frac16$.`,
+        R`<b>b) Somme 8.</b> $(2,6), (3,5), (4,4), (5,3), (6,2)$ : 5 couples, $\Proba = \frac{5}{36}$.`,
+        R`<b>c) Au moins un 6.</b> Contraire : « aucun 6 », $5 \times 5 = 25$ couples. $\Proba = 1 - \frac{25}{36} = \frac{11}{36}$. (Ou par le crible : $6 + 6 - 1 = 11$ couples.)`,
+        R`<b>d) Somme paire.</b> La somme est paire si les deux dés ont la même parité : 2 impairs ($3 \times 3$) ou 2 pairs ($3 \times 3$), soit 18 couples : $\Proba = \frac12$.`
+      ],
+      retenir: R`<p>Pour utiliser « favorables / possibles », les issues doivent être <strong>équiprobables</strong> : rendre les objets discernables.</p>`
+    },
+    'urne-proba': {
+      but: R`<p>Calculer des probabilités de tirages, en simultané puis en successif sans remise.</p>`,
+      methode: R`<p>Simultané : $\Omega$ = parties, équiprobabilité. Successif : <strong>probabilités composées</strong> (produit des probabilités conditionnelles).</p>`,
+      etapes: [
+        R`<b>Univers simultané.</b> Parties à 3 boules parmi 10 : $\binom{10}{3} = 120$, équiprobables.`,
+        R`<b>Exactement 2 rouges.</b> $\binom62\binom41 = 15 \times 4 = 60$ tirages : $\Proba = \frac{60}{120} = \frac12$.`,
+        R`<b>Au moins une blanche.</b> Contraire : 3 rouges, $\binom63 = 20$ tirages : $\Proba = 1 - \frac{20}{120} = \frac56$.`,
+        R`<b>Successif : découpage.</b> « Exactement 2 rouges » = la blanche sort en 1<sup>re</sup>, 2<sup>e</sup> ou 3<sup>e</sup> position : 3 événements incompatibles.`,
+        R`<b>Probabilités composées.</b> $\Proba(R_1 \cap R_2 \cap \overline{R_3}) = \Proba(R_1)\Proba_{R_1}(R_2)\Proba_{R_1 \cap R_2}(\overline{R_3}) = \frac6{10} \times \frac59 \times \frac48 = \frac{120}{720} = \frac16$ (on regarde l'urne à chaque étape).`,
+        R`<b>Les autres ordres</b> donnent le même produit (mêmes facteurs $6 \times 5 \times 4$ au numérateur, $10 \times 9 \times 8$ au dénominateur). Total $3 \times \frac16 = \frac12$, comme en simultané.`
+      ],
+      retenir: R`<p>Pour un événement qui ne dépend pas de l'ordre, tirage simultané et tirages successifs sans remise donnent la même probabilité.</p>`
+    },
+    anniversaires: {
+      but: R`<p>Probabilité qu'au moins deux personnes parmi $n$ aient le même anniversaire, et preuve que $p_{23} \gt \frac12$.</p>`,
+      methode: R`<p>Passer au <strong>contraire</strong> (dates toutes distinctes = arrangement), puis majorer un produit par une exponentielle avec $1 - x \le e^{-x}$.</p>`,
+      etapes: [
+        R`<b>Univers.</b> $\Omega = \{1, \dots, 365\}^n$ (la liste des dates), $365^n$ issues équiprobables.`,
+        R`<b>Contraire.</b> « Dates toutes distinctes » = listes sans répétition : $A_{365}^n = 365 \times 364 \times \dots \times (365 - n + 1)$ issues.`,
+        R`<b>Formule.</b> $p_n = 1 - \dfrac{A_{365}^n}{365^n} = 1 - \prod_{k=0}^{n-1}\dfrac{365 - k}{365} = 1 - \prod_{k=0}^{n-1}\left(1 - \frac{k}{365}\right)$.`,
+        R`<b>Inégalité.</b> $1 - x \le e^{-x}$ pour tout réel $x$ (l'exponentielle, convexe, est au-dessus de sa tangente en 0). Les facteurs étant positifs, on peut multiplier les inégalités : $1 - p_n \le \prod_k e^{-k/365} = e^{-\sum_k k/365}$.`,
+        R`<b>Somme.</b> $\sum_{k=0}^{n-1}k = \frac{n(n-1)}{2}$, d'où $1 - p_n \le e^{-n(n-1)/730}$.`,
+        R`<b>$n = 23$.</b> $\frac{23 \times 22}{730} = \frac{506}{730} \approx 0{,}693\,15 \gt \ln 2 \approx 0{,}693\,14$, donc $1 - p_{23} \le e^{-0{,}693\,15} \lt e^{-\ln 2} = \frac12$ et $p_{23} \gt \frac12$.`
+      ],
+      retenir: R`<p>« Au moins deux pareils » → contraire « tous différents » ; un produit de $(1 - x_k)$ se majore par $e^{-\sum x_k}$.</p>`
+    },
+    'crible-proba': {
+      but: R`<p>À partir de $\Proba(A)$, $\Proba(B)$, $\Proba(A \cup B)$, calculer d'autres probabilités et tester l'indépendance.</p>`,
+      methode: R`<p>Règles de calcul : formule de $\Proba(A \cup B)$, contraire, décomposition $A = (A \cap B) \sqcup (A \cap \overline B)$.</p>`,
+      etapes: [
+        R`<b>Intersection.</b> $\Proba(A \cup B) = \Proba(A) + \Proba(B) - \Proba(A \cap B)$ donne $\Proba(A \cap B) = 0{,}5 + 0{,}4 - 0{,}7 = 0{,}2$.`,
+        R`<b>Ni l'un ni l'autre.</b> $\overline A \cap \overline B = \overline{A \cup B}$ (De Morgan), donc $\Proba = 1 - 0{,}7 = 0{,}3$.`,
+        R`<b>$A$ sans $B$.</b> $A = (A \cap B) \sqcup (A \cap \overline B)$, donc $\Proba(A \cap \overline B) = 0{,}5 - 0{,}2 = 0{,}3$.`,
+        R`<b>Un seul des deux.</b> C'est $A \cup B$ privé de $A \cap B$ : $0{,}7 - 0{,}2 = 0{,}5$.`,
+        R`<b>Indépendance.</b> $\Proba(A)\Proba(B) = 0{,}5 \times 0{,}4 = 0{,}2 = \Proba(A \cap B)$ : indépendants. <b>Incompatibilité</b> : non, car $\Proba(A \cap B) \neq 0$.`
+      ],
+      retenir: R`<p>Faire un diagramme à 4 zones ($A \cap B$, $A$ seul, $B$ seul, ni l'un ni l'autre) : toutes les questions s'y lisent.</p>`
+    },
+    'de-truque': {
+      but: R`<p>Déterminer une probabilité non uniforme sur $\{1, \dots, 6\}$, puis l'utiliser.</p>`,
+      methode: R`<p>Sur un univers fini, une probabilité est donnée par des $p_k \ge 0$ de <strong>somme 1</strong>, et $\Proba(A) = \sum_{k \in A}p_k$.</p>`,
+      etapes: [
+        R`<b>Traduction.</b> « Proportionnelle à $k$ » : il existe $c$ tel que $p_k = ck$ pour $k = 1, \dots, 6$.`,
+        R`<b>Constante.</b> $\sum_{k=1}^6 ck = 21c = 1$, donc $c = \frac1{21}$ et $p_k = \frac k{21}$ (positifs, de somme 1 : c'est bien une probabilité).`,
+        R`<b>Résultat pair.</b> $\Proba(\{2, 4, 6\}) = \frac{2 + 4 + 6}{21} = \frac{12}{21} = \frac47$.`,
+        R`<b>Au moins 5.</b> $\Proba(\{5, 6\}) = \frac{5 + 6}{21} = \frac{11}{21}$.`
+      ],
+      retenir: R`<p>Sans équiprobabilité, on <strong>somme</strong> les probabilités des issues ; « favorables / possibles » serait faux.</p>`
+    },
+    'deux-enfants': {
+      but: R`<p>Probabilité d'avoir deux filles, sachant deux informations différentes.</p>`,
+      methode: R`<p>En équiprobabilité, $\Proba_B(A) = \frac{\Card(A \cap B)}{\Card B}$ : on <strong>restreint l'univers</strong> à $B$.</p>`,
+      etapes: [
+        R`<b>Univers.</b> $\Omega = \{FF, FG, GF, GG\}$ (aîné en premier), 4 issues équiprobables (sexes indépendants, probabilité $\frac12$). $D = \{FF\}$.`,
+        R`<b>a) L'aînée est une fille.</b> $A = \{FF, FG\}$, $D \cap A = \{FF\}$ : $\Proba_A(D) = \frac12$.`,
+        R`<b>b) Au moins une fille.</b> $B = \{FF, FG, GF\}$, $D \cap B = \{FF\}$ : $\Proba_B(D) = \frac13$.`,
+        R`<b>Pourquoi c'est différent.</b> En b), on sait qu'il y a une fille sans savoir laquelle : trois situations restent possibles, au lieu de deux en a).`
+      ],
+      retenir: R`<p>Écrire précisément l'événement conditionnant : deux informations proches peuvent donner des probabilités différentes.</p>`
+    },
+    cles: {
+      but: R`<p>Probabilité que la porte s'ouvre au $k$-ième essai, sans puis avec remise.</p>`,
+      methode: R`<p>Succession d'épreuves : <strong>probabilités composées</strong> (sans remise) ou <strong>indépendance</strong> (avec remise).</p>`,
+      etapes: [
+        R`<b>Événement.</b> $E_i$ : « le $i$-ème essai échoue ». L'ouverture au $k$-ième essai est $E_1 \cap \dots \cap E_{k-1} \cap \overline{E_k}$.`,
+        R`<b>Sans remise : facteurs.</b> $\Proba(E_1) = \frac{n-1}n$ ; sachant $E_1$, il reste $n - 1$ clés dont la bonne : $\Proba_{E_1}(E_2) = \frac{n-2}{n-1}$ ; … ; sachant les $k - 1$ échecs, il reste $n - k + 1$ clés : succès avec probabilité $\frac1{n-k+1}$.`,
+        R`<b>Sans remise : produit.</b> $\frac{n-1}{n} \times \frac{n-2}{n-1} \times \dots \times \frac{n-k+1}{n-k+2} \times \frac{1}{n-k+1} = \frac1n$ : tout se simplifie (télescopage). Chaque rang a la même probabilité.`,
+        R`<b>Avec remise.</b> Les essais sont indépendants, chacun réussit avec probabilité $\frac1n$ : $\Proba = \left(1 - \frac1n\right)^{k-1}\frac1n$.`
+      ],
+      retenir: R`<p>Sans remise : regarder l'état du système à chaque étape. Avec remise : épreuves indépendantes identiques.</p>`
+    },
+    depistage: {
+      but: R`<p>Probabilité d'être malade sachant le résultat du test (positif puis négatif).</p>`,
+      methode: R`<p>Arbre pondéré : probabilités totales pour $\Proba(T)$, puis <strong>Bayes</strong> pour inverser le conditionnement.</p>`,
+      etapes: [
+        R`<b>Données.</b> $\Proba(M) = 0{,}01$, $\Proba_M(T) = 0{,}99$, $\Proba_{\overline M}(T) = 0{,}02$ ; donc $\Proba(\overline M) = 0{,}99$, $\Proba_M(\overline T) = 0{,}01$, $\Proba_{\overline M}(\overline T) = 0{,}98$.`,
+        R`<b>Chemins vers $T$.</b> $\Proba(M \cap T) = 0{,}01 \times 0{,}99 = 0{,}0099$ et $\Proba(\overline M \cap T) = 0{,}99 \times 0{,}02 = 0{,}0198$.`,
+        R`<b>Probabilités totales.</b> $\Proba(T) = 0{,}0099 + 0{,}0198 = 0{,}0297$.`,
+        R`<b>Bayes.</b> $\Proba_T(M) = \frac{0{,}0099}{0{,}0297} = \frac13$ : deux positifs sur trois sont des faux positifs, car les sains sont bien plus nombreux.`,
+        R`<b>Test négatif.</b> $\Proba(\overline T) = 1 - 0{,}0297 = 0{,}9703$ et $\Proba(M \cap \overline T) = 0{,}01 \times 0{,}01 = 0{,}0001$, donc $\Proba_{\overline T}(M) = \frac{0{,}0001}{0{,}9703} \approx 0{,}0001$.`
+      ],
+      retenir: R`<p>$\Proba_T(M) \neq \Proba_M(T)$ : pour inverser, Bayes = chemin / somme des chemins.</p>`
+    },
+    'urnes-de': {
+      but: R`<p>Probabilité de tirer une rouge quand l'urne est choisie par un dé, puis probabilité de l'urne sachant la couleur.</p>`,
+      methode: R`<p>Système complet $(U_1, U_2)$ (« on tire dans $U_i$ ») : probabilités totales, puis Bayes.</p>`,
+      etapes: [
+        R`<b>Choix de l'urne.</b> $\Proba(U_1) = \Proba(\text{6}) = \frac16$, $\Proba(U_2) = \frac56$.`,
+        R`<b>Conditionnelles.</b> $\Proba_{U_1}(R) = \frac25$ (2 rouges sur 5), $\Proba_{U_2}(R) = \frac45$.`,
+        R`<b>Probabilités totales.</b> $\Proba(R) = \frac16 \times \frac25 + \frac56 \times \frac45 = \frac2{30} + \frac{20}{30} = \frac{22}{30} = \frac{11}{15}$.`,
+        R`<b>Bayes.</b> $\Proba_R(U_1) = \frac{\Proba(U_1 \cap R)}{\Proba(R)} = \frac{2/30}{22/30} = \frac1{11}$.`
+      ],
+      retenir: R`<p>Expérience en deux étapes : système complet = résultats de la première étape.</p>`
+    },
+    'deux-a-deux': {
+      but: R`<p>Construire trois événements deux à deux indépendants mais pas mutuellement indépendants.</p>`,
+      methode: R`<p>Vérifier les égalités produit pour <strong>chaque paire</strong>, puis pour le <strong>triplet</strong>.</p>`,
+      etapes: [
+        R`<b>Univers.</b> $\Omega = \{PP, PF, FP, FF\}$, équiprobable. $A = \{PP, PF\}$, $B = \{PP, FP\}$, $C = \{PP, FF\}$ : chacun de probabilité $\frac12$.`,
+        R`<b>Paires.</b> $A \cap B = \{PP\}$, $A \cap C = \{PP\}$, $B \cap C = \{PP\}$ : probabilité $\frac14 = \frac12 \times \frac12$. Les trois paires sont indépendantes.`,
+        R`<b>Triplet.</b> $A \cap B \cap C = \{PP\}$ : $\frac14 \neq \frac12 \times \frac12 \times \frac12 = \frac18$. Pas d'indépendance mutuelle.`,
+        R`<b>Interprétation.</b> $\Proba_{A \cap B}(C) = \frac{1/4}{1/4} = 1$ : connaître $A$ et $B$ ensemble détermine $C$, alors que chacun seul ne dit rien sur $C$.`
+      ],
+      retenir: R`<p>Mutuellement indépendants ⟹ deux à deux, mais <strong>pas</strong> l'inverse.</p>`
+    },
+    fiabilite: {
+      but: R`<p>Probabilité qu'un système (série + parallèle) fonctionne, puis probabilité conditionnelle.</p>`,
+      methode: R`<p>Série = intersection, parallèle = réunion. Indépendance → produits ; réunion → crible ou contraire.</p>`,
+      etapes: [
+        R`<b>Traduction.</b> Le système fonctionne si ($A$ et $B$ fonctionnent) ou si $C$ fonctionne : $S = (A \cap B) \cup C$.`,
+        R`<b>Bloc série.</b> $\Proba(A \cap B) = 0{,}9 \times 0{,}8 = 0{,}72$ (indépendance).`,
+        R`<b>Réunion.</b> $\Proba(S) = \Proba(A \cap B) + \Proba(C) - \Proba(A \cap B \cap C) = 0{,}72 + 0{,}7 - 0{,}72 \times 0{,}7 = 1{,}42 - 0{,}504 = 0{,}916$.`,
+        R`<b>Vérification par le contraire.</b> $\overline S = \overline{A \cap B} \cap \overline C$, de probabilité $(1 - 0{,}72)(1 - 0{,}7) = 0{,}28 \times 0{,}3 = 0{,}084$ ; et $1 - 0{,}084 = 0{,}916$ ✓.`,
+        R`<b>Conditionnement.</b> Si $C$ fonctionne, le système fonctionne : $C \subset S$, donc $C \cap S = C$ et $\Proba_S(C) = \frac{0{,}7}{0{,}916} \approx 0{,}764$.`
+      ],
+      retenir: R`<p>Parallèle : il est souvent plus simple de calculer la probabilité de panne (tout tombe en panne) puis de prendre le contraire.</p>`
+    },
+    'de-mere': {
+      but: R`<p>Comparer deux paris : au moins un 6 en 4 lancers, au moins un double six en 24 lancers.</p>`,
+      methode: R`<p>Épreuves indépendantes : « au moins une fois » = $1 - $ « jamais » = $1 - q^n$.</p>`,
+      etapes: [
+        R`<b>Premier pari.</b> À chaque lancer, « pas de 6 » a la probabilité $\frac56$ ; jamais en 4 lancers : $\left(\frac56\right)^4 = \frac{625}{1296}$. Donc $\Proba = \frac{671}{1296} \approx 0{,}518$.`,
+        R`<b>Second pari.</b> Un lancer de deux dés donne un double six avec probabilité $\frac1{36}$ ; jamais en 24 lancers : $\left(\frac{35}{36}\right)^{24} \approx 0{,}509$. Donc $\Proba \approx 0{,}491$.`,
+        R`<b>Calcul de $(35/36)^{24}$.</b> $24\ln\frac{35}{36} \approx 24 \times (-0{,}028\,17) \approx -0{,}676$, et $e^{-0{,}676} \approx 0{,}509$.`,
+        R`<b>Conclusion.</b> Le premier pari est favorable ($\gt \frac12$), le second défavorable, bien que $\frac46 = \frac{24}{36}$ : la probabilité n'est pas proportionnelle au nombre d'essais.`
+      ],
+      retenir: R`<p>« Au moins une fois en $n$ essais indépendants » : $1 - (1 - p)^n$, et non $np$.</p>`
+    }
+  };
   L2.chapter('probas', 'denombrement', {
     intro: R`<p>Ce chapitre pose les bases du calcul des probabilités sur un univers fini. On commence par les outils de <strong>dénombrement</strong> : avec l'équiprobabilité, $\Proba(A) = \dfrac{\Card A}{\Card\Omega}$, et calculer une probabilité revient alors à compter. On définit ensuite les <strong>espaces probabilisés</strong> et les règles de calcul, puis le <strong>conditionnement</strong> (probabilités composées, probabilités totales, formule de Bayes) et l'<strong>indépendance</strong>.</p>`,
-    cours, fiche, exercices, methodes, generateurs, plan, reperes
+    cours, fiche, exercices, methodes, generateurs, plan, reperes, details
   });
 })();
