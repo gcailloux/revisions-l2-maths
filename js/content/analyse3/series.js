@@ -518,7 +518,7 @@
       pieges: [R`Séparer $\sum(a_n - a_{n+2})$ en $\sum a_n - \sum a_{n+2}$ : ces deux séries divergent ! Toujours travailler sur les sommes <em>finies</em>.`]
     },
     {
-      title: 'Utiliser une comparaison série–intégrale', gen: 'alternee',
+      title: 'Utiliser une comparaison série–intégrale',
       cas: R`$u_n = f(n)$ avec $f$ monotone (souvent un $\ln$), ou équivalent d'une somme`, debut: R`<b>Encadrer</b> $f(k)$ entre $\int_k^{k+1} f$ et $\int_{k-1}^{k} f$ (faire un dessin), puis <b>sommer</b>.`,
       quand: R`<p>$u_n = f(n)$ avec $f$ positive, décroissante, ayant une primitive explicite ($\frac{1}{t\ln t}$, $\frac{1}{t^\alpha}$…) ; ou on veut un <strong>équivalent</strong> d'une somme partielle ou d'un reste.</p>`,
       etapes: [

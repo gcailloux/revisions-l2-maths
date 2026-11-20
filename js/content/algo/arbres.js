@@ -832,7 +832,7 @@ fin fonction`) + R`<p>On ajoute un paramètre (la profondeur courante) transmis 
     { etape: 3, si: R`Tester « est-ce une feuille ? »`, alors: R`$a \neq \text{NUL}$ <b>et</b> $a.\text{gauche} = \text{NUL}$ <b>et</b> $a.\text{droit} = \text{NUL}$.` },
     { etape: 4, si: R`Un test d'ABR qui ne compare qu'aux fils`, alors: R`Contre-exemple : 50, fils gauche 30, petit-fils droit 60. Il faut un <b>intervalle</b> ou le <b>parcours infixe</b>.` },
     { etape: 5, si: R`Des valeurs insérées dans l'ordre croissant`, alors: R`ABR <b>filiforme</b> : hauteur $n - 1$, opérations en $\Theta(n)$.` },
-    { etape: 5, si: R`Un arbre complet ou équilibré`, alors: R`Hauteur <b>$\lfloor\log_2 n\rfloor$</b> : opérations en $\Theta(\log n)$.` }
+    { etape: 5, si: R`Un arbre complet ou équilibré`, alors: R`Hauteur <b>$\lfloor\log_2 n\rfloor$</b> (complet), $O(\log n)$ (équilibré) : opérations en $O(\log n)$.` }
   ];
 
 
