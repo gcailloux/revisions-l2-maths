@@ -218,6 +218,18 @@ svg.tree text { font-family: var(--font-ui); font-size: 15px; font-weight: 600; 
 svg.tree .hl circle { fill: color-mix(in srgb, var(--sc) 30%, var(--panel)); stroke-width: 3.5; }
 svg.tree .del circle { stroke: var(--warn); stroke-dasharray: 4 3; }
 svg.tree text.idx { font-size: 11px; font-weight: 400; fill: var(--muted); }
+/* Tracés de courbes et de sommes de Riemann (js/core/plot.js) */
+.plot-fig { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; margin: 10px 0; overflow-x: auto; }
+.plot-fig figure { margin: 0; text-align: center; }
+.plot-fig figcaption { font-family: var(--font-ui); font-size: 13px; color: var(--muted); margin-top: 2px; }
+svg.plot { max-width: 100%; height: auto; overflow: visible; }
+svg.plot .ax { stroke: var(--muted); stroke-width: 1; opacity: .7; }
+svg.plot .cv { fill: none; stroke: var(--sc-ink); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+svg.plot .cv2 { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-dasharray: 5 4; }
+svg.plot .tg { stroke: var(--warn, #c92a2a); stroke-width: 1.5; stroke-dasharray: 5 3; }
+svg.plot .rect { fill: color-mix(in srgb, var(--sc) 20%, transparent); stroke: var(--sc-ink); stroke-width: 1; }
+svg.plot circle { fill: var(--text); }
+svg.plot text { font-family: var(--font-ui); font-size: 12px; fill: var(--text); }
 pre.pseudo .tk-kw { font-weight: 700; }
 :not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
 .tk-kw { color: #a626a4; font-weight: 600; } .tk-str { color: #50a14f; } .tk-num { color: #986801; }

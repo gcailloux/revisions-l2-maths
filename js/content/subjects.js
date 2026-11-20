@@ -71,7 +71,16 @@ L2.subject({
   desc: 'Suites de fonctions, intégration (sommes de Riemann, continuité uniforme), courbes paramétrées.',
   chapters: [
     { id: 'suites-fonctions', title: 'Suites de fonctions : convergence simple, convergence uniforme' },
-    { id: 'riemann', title: 'Intégration, sommes de Riemann et continuité uniforme' },
-    { id: 'courbes', title: 'Courbes paramétrées' }
+    { id: 'riemann', title: 'Intégration, sommes de Riemann et continuité uniforme', sections: [
+      'Continuité uniforme, théorème de Heine',
+      'Intégrale de Riemann : fonctions en escalier, fonctions intégrables',
+      'Sommes de Riemann',
+      'Méthodes numériques : rectangles, point milieu, trapèzes'] },
+    { id: 'courbes', title: 'Courbes paramétrées', sections: [
+      'Définitions, réduction du domaine d’étude',
+      'Tangente, points réguliers et points stationnaires',
+      'Branches infinies, points doubles, plan d’étude',
+      'Longueur d’un arc',
+      'Applications : tracé numérique, courbes de Bézier'] }
   ]
 });

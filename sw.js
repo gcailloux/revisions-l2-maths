@@ -2,7 +2,7 @@
    La liste PRECACHE et la VERSION sont régénérées par tools/maj-hors-ligne.ps1
    (à relancer après chaque ajout ou modification de fichier). */
 // <auto>
-const VERSION = '20261115-134459';
+const VERSION = '20261120-132248';
 const PRECACHE = [
   './',
   './index.html',
@@ -10,6 +10,8 @@ const PRECACHE = [
   './css/style.css',
   './js/app.js',
   './js/content/subjects.js',
+  './js/content/aai/courbes.js',
+  './js/content/aai/riemann.js',
   './js/content/aai/suites-fonctions.js',
   './js/content/algebre3/vp.js',
   './js/content/algo/arbres.js',
@@ -18,6 +20,7 @@ const PRECACHE = [
   './js/content/probas/denombrement.js',
   './js/content/probas/va-discretes.js',
   './js/core/mathlib.js',
+  './js/core/plot.js',
   './js/core/registry.js',
   './vendor/html-to-image/html-to-image.js',
   './vendor/katex/katex.min.css',
