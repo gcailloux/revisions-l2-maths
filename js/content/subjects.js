@@ -3,14 +3,20 @@
 
 L2.subject({
   id: 'algebre3', name: 'Algèbre 3', color: '#f2a100', ink: '#9a5a00', on: '#2b1a00',
-  desc: 'Réduction des endomorphismes : déterminants, éléments propres, diagonalisation, trigonalisation.',
+  desc: 'Coordonnées et changement de base, projections et symétries ; diagonalisation et suites récurrentes linéaires.',
   chapters: [
-    { id: 'rappels', title: 'Rappels : espaces vectoriels, applications linéaires, matrices' },
-    { id: 'determinants', title: 'Déterminants' },
-    { id: 'vp', title: 'Valeurs propres et vecteurs propres' },
-    { id: 'diagonalisation', title: 'Diagonalisation' },
-    { id: 'polynomes-endo', title: "Polynômes d'endomorphismes" },
-    { id: 'trigonalisation', title: 'Trigonalisation et applications' }
+    { id: 'coordonnees', title: 'Coordonnées, changement de base', sections: [
+      'Coordonnées',
+      'Changement de base',
+      'Projections',
+      'Symétries'] },
+    { id: 'diagonalisation', title: 'Diagonalisation', sections: [
+      'Déterminant, trace',
+      'Valeurs propres, vecteurs propres',
+      'Polynôme caractéristique',
+      'Sous-espaces propres',
+      'Diagonalisation',
+      'Application aux suites récurrentes linéaires'] }
   ]
 });
 
